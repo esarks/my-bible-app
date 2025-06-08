@@ -22,7 +22,7 @@ jobs:
       - name: Configure Docker to use gcloud as a credential helper
         run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
-      - name: Build and push Docker image to Google Artifact Registry
+      - name: Build and push Docker image to Artifact Registry
         run: |
           IMAGE_URI="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/my-bible-api:${{ github.sha }}"
           echo "Building Docker image: $IMAGE_URI"
@@ -38,4 +38,3 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
-
