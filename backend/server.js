@@ -1,10 +1,22 @@
-
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const logger = require('./logger');
-const app = express();
-
 const cors = require('cors');
+
+const app = express();
 app.use(cors());
+
+// Load ASV Bible data at startup
+let asvBibleData;
+const asvFilePath = path.join(__dirname, '.data/bibles/asv.json');
+try {
+  const rawData = fs.readFileSync(asvFilePath, 'utf8');
+  asvBibleData = JSON.parse(rawData);
+  logger.info('ASV Bible data loaded successfully.');
+} catch (error) {
+  logger.error('Error loading ASV Bible data:', error);
+}
 
 // Middleware to log all incoming requests
 app.use((req, res, next) => {
@@ -17,13 +29,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Existing root endpoint
+// Root endpoint
 app.get('/', (req, res) => {
   logger.info('Root endpoint hit');
   res.send('Hello from my-bible-api!');
 });
 
-// Existing /bible/chapter endpoint
+// Dummy endpoint (left as-is)
 app.get('/bible/chapter', (req, res) => {
   const { book, chapter } = req.query;
 
@@ -34,7 +46,6 @@ app.get('/bible/chapter', (req, res) => {
 
   logger.info('/bible/chapter accessed', { book, chapter });
 
-  // Mocked response for demonstration
   res.json({
     book,
     chapter,
@@ -42,7 +53,7 @@ app.get('/bible/chapter', (req, res) => {
   });
 });
 
-// New /api/bible endpoint
+// Real /api/bible endpoint using asv.json
 app.get('/api/bible', (req, res) => {
   const { book, chapter } = req.query;
 
@@ -51,27 +62,24 @@ app.get('/api/bible', (req, res) => {
     return res.status(400).json({ error: 'Missing book or chapter parameter' });
   }
 
-  logger.info('/api/bible accessed', { book, chapter });
+  if (!asvBibleData || !asvBibleData.verses) {
+    logger.error('ASV Bible data not loaded.');
+    return res.status(500).json({ error: 'Bible data not loaded.' });
+  }
 
-  // Example dummy verses
-  const dummyVerses = {
-    Genesis: {
-      1: [
-        'In the beginning God created the heavens and the earth.',
-        'Now the earth was formless and empty...',
-      ],
-      2: ['Thus the heavens and the earth were completed...'],
-    },
-    Exodus: {
-      1: ['These are the names of the sons of Israel who went to Egypt...'],
-    },
-  };
+  // Find matching verses
+  const verses = asvBibleData.verses.filter(
+    (v) =>
+      v.book_name.toLowerCase() === book.toLowerCase() &&
+      String(v.chapter) === String(chapter)
+  );
 
-  const verses =
-    dummyVerses[book] && dummyVerses[book][chapter]
-      ? dummyVerses[book][chapter]
-      : ['No verses found for this selection.'];
+  if (verses.length === 0) {
+    logger.warn('No verses found.', { book, chapter });
+    return res.status(404).json({ error: 'No verses found for this selection.' });
+  }
 
+  logger.info(`/api/bible returning verses`, { book, chapter, count: verses.length });
   res.json({ verses });
 });
 
