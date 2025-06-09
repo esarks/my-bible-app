@@ -1,37 +1,55 @@
 const express = require('express');
+const logger = require('./logger');
 const app = express();
+
+// Middleware to log all incoming requests
+app.use((req, res, next) => {
+  logger.info('Incoming request', {
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    ip: req.ip,
+  });
+  next();
+});
 
 // Existing root endpoint
 app.get('/', (req, res) => {
+  logger.info('Root endpoint hit');
   res.send('Hello from my-bible-api!');
 });
 
 // Existing /bible/chapter endpoint
 app.get('/bible/chapter', (req, res) => {
-  const book = req.query.book;
-  const chapter = req.query.chapter;
+  const { book, chapter } = req.query;
 
   if (!book || !chapter) {
+    logger.warn('Missing book or chapter in /bible/chapter', { query: req.query });
     return res.status(400).json({ error: 'Missing book or chapter parameter' });
   }
 
-  // For now, return a mocked response
+  logger.info('/bible/chapter accessed', { book, chapter });
+
+  // Mocked response for demonstration
   res.json({
     book,
     chapter,
-    text: 'This is a mock text for demonstration.'
+    text: 'This is a mock text for demonstration.',
   });
 });
 
-// 🟩 New /api/bible endpoint to match frontend App.jsx fetch
+// New /api/bible endpoint
 app.get('/api/bible', (req, res) => {
   const { book, chapter } = req.query;
 
   if (!book || !chapter) {
+    logger.warn('Missing book or chapter in /api/bible', { query: req.query });
     return res.status(400).json({ error: 'Missing book or chapter parameter' });
   }
 
-  // Example dummy verses (replace with real data later!)
+  logger.info('/api/bible accessed', { book, chapter });
+
+  // Example dummy verses
   const dummyVerses = {
     Genesis: {
       1: [
@@ -55,5 +73,5 @@ app.get('/api/bible', (req, res) => {
 
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  logger.info(`Server is running on port ${port}`);
 });
