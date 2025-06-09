@@ -5,22 +5,27 @@ const logger = require('./logger');
 const cors = require('cors');
 
 const app = express();
-
-// ✅ CORS: Allow all origins
 app.use(cors());
 
-// ✅ Load ASV Bible data at startup
-let asvBibleData;
-const asvFilePath = path.join(__dirname, '.data/bibles/asv.json');
-try {
-  const rawData = fs.readFileSync(asvFilePath, 'utf8');
-  asvBibleData = JSON.parse(rawData);
-  logger.info('ASV Bible data loaded successfully.');
-} catch (error) {
-  logger.error('Error loading ASV Bible data:', error);
-}
+// ✅ Load all Bible JSON files at startup
+const bibles = {};
+const biblesDir = path.join(__dirname, '.data/bibles');
 
-// ✅ Middleware to log all incoming requests
+fs.readdirSync(biblesDir).forEach(file => {
+  if (file.endsWith('.json')) {
+    const translationKey = file.replace('.json', '').toLowerCase();
+    const filePath = path.join(biblesDir, file);
+    try {
+      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      bibles[translationKey] = data;
+      logger.info(`Loaded Bible: ${translationKey}`);
+    } catch (error) {
+      logger.error(`Error loading ${file}:`, error);
+    }
+  }
+});
+
+// ✅ Log all incoming requests
 app.use((req, res, next) => {
   logger.info('Incoming request', {
     method: req.method,
@@ -31,57 +36,49 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Root endpoint for basic health check
+// ✅ Root endpoint
 app.get('/', (req, res) => {
-  logger.info('Root endpoint hit');
   res.send('Hello from my-bible-api!');
 });
 
-// ✅ /bible/chapter dummy endpoint (kept as-is)
+// ✅ Dummy endpoint
 app.get('/bible/chapter', (req, res) => {
   const { book, chapter } = req.query;
-
   if (!book || !chapter) {
-    logger.warn('Missing book or chapter in /bible/chapter', { query: req.query });
+    logger.warn('Missing book or chapter', { query: req.query });
     return res.status(400).json({ error: 'Missing book or chapter parameter' });
   }
-
-  logger.info('/bible/chapter accessed', { book, chapter });
-
-  res.json({
-    book,
-    chapter,
-    text: 'This is a mock text for demonstration.',
-  });
+  logger.info('/bible/chapter dummy accessed', { book, chapter });
+  res.json({ book, chapter, text: 'This is a mock text for demonstration.' });
 });
 
-// ✅ /api/bible endpoint to serve real Bible data
+// ✅ Real /api/bible endpoint
 app.get('/api/bible', (req, res) => {
-  const { book, chapter } = req.query;
+  const { translation = 'asv', book, chapter } = req.query;
 
   if (!book || !chapter) {
-    logger.warn('Missing book or chapter in /api/bible', { query: req.query });
+    logger.warn('Missing book or chapter', { query: req.query });
     return res.status(400).json({ error: 'Missing book or chapter parameter' });
   }
 
-  if (!asvBibleData || !asvBibleData.verses) {
-    logger.error('ASV Bible data not loaded.');
-    return res.status(500).json({ error: 'Bible data not loaded.' });
+  const bibleData = bibles[translation.toLowerCase()];
+  if (!bibleData || !bibleData.verses) {
+    logger.warn('Translation not found or data not loaded', { translation });
+    return res.status(404).json({ error: 'Translation not found or data not loaded.' });
   }
 
-  // 🔍 Find matching verses
-  const verses = asvBibleData.verses.filter(
+  const verses = bibleData.verses.filter(
     (v) =>
       v.book_name.toLowerCase() === book.toLowerCase() &&
       String(v.chapter) === String(chapter)
   );
 
   if (verses.length === 0) {
-    logger.warn('No verses found.', { book, chapter });
+    logger.warn('No verses found', { translation, book, chapter });
     return res.status(404).json({ error: 'No verses found for this selection.' });
   }
 
-  logger.info('/api/bible returning verses', { book, chapter, count: verses.length });
+  logger.info('/api/bible returning verses', { translation, book, chapter, count: verses.length });
   res.json({ verses });
 });
 

@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { fetchVerses } from './api';
 
 function App() {
-  const [translations] = useState(['ASV', 'ASV2']);
+  // ✅ Update: Include all translations
+  const [translations] = useState([
+    'ASV', 'ASV2', 'Bishops', 'Coverdale', 'Geneva', 'KJV', 'KJV_Strongs', 'NET', 'Tyndale', 'WEB'
+  ]);
   const [selectedTranslation, setSelectedTranslation] = useState('ASV');
 
   const [books] = useState([
