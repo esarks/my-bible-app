@@ -54,7 +54,7 @@ function App() {
       setVerses(data.verses || []);
     } catch (error) {
       console.error('Error fetching verses:', error);
-      setVerses(['Error fetching verses']);
+      setVerses([{ verse: '', text: 'Error fetching verses' }]);
     }
   };
 
@@ -108,8 +108,8 @@ function App() {
       {verses.length > 0 && (
         <div style={{ marginTop: '30px' }}>
           <h3>{selectedTranslation} - {selectedBook} {selectedChapter}</h3>
-          {verses.map((verse, idx) => (
-            <p key={idx}>{verse}</p>
+          {verses.map((verseObj, idx) => (
+            <p key={idx}><strong>{verseObj.verse}.</strong> {verseObj.text}</p>
           ))}
         </div>
       )}

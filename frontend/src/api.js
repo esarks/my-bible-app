@@ -1,11 +1,11 @@
-export const fetchVerses = async (book, chapter, translation) => {
-  const response = await fetch(
-    `https://my-bible-backend-327765964554.us-central1.run.app/api/bible?book=${book}&chapter=${chapter}&translation=${translation}`
-  );
+const isDocker = window.location.hostname !== 'localhost';
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch verses');
-  }
+const baseURL = isDocker
+  ? 'http://my-bible-backend:8080'
+  : 'http://localhost:8080';
 
+export const fetchVerses = async (translation, book, chapter) => {
+  const response = await fetch(`${baseURL}/api/bible?translation=${translation}&book=${book}&chapter=${chapter}`);
+  if (!response.ok) throw new Error('Failed to fetch verses');
   return response.json();
 };
