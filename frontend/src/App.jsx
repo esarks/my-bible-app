@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { fetchVerses } from './api';
 
 function App() {
-  const [translations] = useState(['ASV', 'ASV2']); // Expand as needed
+  const [translations] = useState(['ASV', 'ASV2']);
   const [selectedTranslation, setSelectedTranslation] = useState('ASV');
 
   const [books] = useState([
@@ -15,6 +15,7 @@ function App() {
     'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon',
     'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
   ]);
+
   const [selectedBook, setSelectedBook] = useState('');
   const [chapters, setChapters] = useState([]);
   const [selectedChapter, setSelectedChapter] = useState('');
@@ -46,7 +47,7 @@ function App() {
   };
 
   const fetchChapter = async () => {
-    if (!selectedBook || !selectedChapter) return;
+    if (!selectedTranslation || !selectedBook || !selectedChapter) return;
 
     try {
       const data = await fetchVerses(selectedTranslation, selectedBook, selectedChapter);
@@ -61,7 +62,6 @@ function App() {
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>My Bible App</h1>
 
-      {/* Translation dropdown */}
       <div style={{ margin: '20px' }}>
         <label htmlFor="translation-select">Select Translation: </label>
         <select
@@ -75,7 +75,6 @@ function App() {
         </select>
       </div>
 
-      {/* Book dropdown */}
       <div style={{ margin: '20px' }}>
         <label htmlFor="book-select">Select Book: </label>
         <select id="book-select" value={selectedBook} onChange={handleBookChange}>
@@ -86,7 +85,6 @@ function App() {
         </select>
       </div>
 
-      {/* Chapter dropdown */}
       {chapters.length > 0 && (
         <div style={{ margin: '20px' }}>
           <label htmlFor="chapter-select">Select Chapter: </label>
@@ -103,12 +101,10 @@ function App() {
         </div>
       )}
 
-      {/* Fetch button */}
       {selectedBook && selectedChapter && (
         <button onClick={fetchChapter}>Fetch Verses</button>
       )}
 
-      {/* Display verses */}
       {verses.length > 0 && (
         <div style={{ marginTop: '30px' }}>
           <h3>{selectedTranslation} - {selectedBook} {selectedChapter}</h3>
