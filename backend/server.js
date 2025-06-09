@@ -5,9 +5,11 @@ const logger = require('./logger');
 const cors = require('cors');
 
 const app = express();
+
+// ✅ CORS: Allow all origins
 app.use(cors());
 
-// Load ASV Bible data at startup
+// ✅ Load ASV Bible data at startup
 let asvBibleData;
 const asvFilePath = path.join(__dirname, '.data/bibles/asv.json');
 try {
@@ -18,7 +20,7 @@ try {
   logger.error('Error loading ASV Bible data:', error);
 }
 
-// Middleware to log all incoming requests
+// ✅ Middleware to log all incoming requests
 app.use((req, res, next) => {
   logger.info('Incoming request', {
     method: req.method,
@@ -29,13 +31,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Root endpoint
+// ✅ Root endpoint for basic health check
 app.get('/', (req, res) => {
   logger.info('Root endpoint hit');
   res.send('Hello from my-bible-api!');
 });
 
-// Dummy endpoint (left as-is)
+// ✅ /bible/chapter dummy endpoint (kept as-is)
 app.get('/bible/chapter', (req, res) => {
   const { book, chapter } = req.query;
 
@@ -53,7 +55,7 @@ app.get('/bible/chapter', (req, res) => {
   });
 });
 
-// Real /api/bible endpoint using asv.json
+// ✅ /api/bible endpoint to serve real Bible data
 app.get('/api/bible', (req, res) => {
   const { book, chapter } = req.query;
 
@@ -67,7 +69,7 @@ app.get('/api/bible', (req, res) => {
     return res.status(500).json({ error: 'Bible data not loaded.' });
   }
 
-  // Find matching verses
+  // 🔍 Find matching verses
   const verses = asvBibleData.verses.filter(
     (v) =>
       v.book_name.toLowerCase() === book.toLowerCase() &&
@@ -79,10 +81,11 @@ app.get('/api/bible', (req, res) => {
     return res.status(404).json({ error: 'No verses found for this selection.' });
   }
 
-  logger.info(`/api/bible returning verses`, { book, chapter, count: verses.length });
+  logger.info('/api/bible returning verses', { book, chapter, count: verses.length });
   res.json({ verses });
 });
 
+// ✅ Start the server
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
