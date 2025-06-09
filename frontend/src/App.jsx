@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { fetchBibleChapter } from './api'; // 🟩 Import from api.js
 
 function App() {
   const [books] = useState([
@@ -28,16 +29,13 @@ function App() {
     }
   };
 
-  // Handler: Fetch verses for selected book & chapter
+  // 🟩 Fetch verses using the api.js abstraction
   const fetchVerses = async () => {
     if (!selectedBook || !selectedChapter) return;
 
     try {
-      const response = await fetch(
-        `/api/bible?book=${selectedBook}&chapter=${selectedChapter}`
-      );
-      const data = await response.json();
-      setVerses(data.verses || []);
+      const verses = await fetchBibleChapter(selectedBook, selectedChapter);
+      setVerses(verses);
     } catch (error) {
       console.error('Error fetching verses:', error);
       setVerses(['Error fetching verses']);
@@ -88,7 +86,9 @@ function App() {
 
       {verses.length > 0 && (
         <div style={{ marginTop: '30px' }}>
-          <h3>{selectedBook} {selectedChapter}</h3>
+          <h3>
+            {selectedBook} {selectedChapter}
+          </h3>
           {verses.map((verse, idx) => (
             <p key={idx}>{verse}</p>
           ))}
