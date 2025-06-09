@@ -21,7 +21,7 @@ jobs:
 
       - name: Activate service account (ensure Docker sees credentials)
         run: |
-          printf '%s' "${{ secrets.GCP_SA_KEY }}" > "${{ github.workspace }}/gcloud-key.json"
+          echo -e "${{ secrets.GCP_SA_KEY }}" > "${{ github.workspace }}/gcloud-key.json"
           gcloud auth activate-service-account --key-file="${{ github.workspace }}/gcloud-key.json"
 
       - name: Configure Docker authentication for Artifact Registry
