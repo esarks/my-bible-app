@@ -19,35 +19,27 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Write service account JSON to file
-        run: |
-          echo '${{ secrets.GCP_SA_KEY }}' | jq . > "${{ github.workspace }}/gcloud-key.json"
-          cat "${{ github.workspace }}/gcloud-key.json"
+      - name: Configure Docker authentication
+        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Authenticate with GCP
+      - name: Build and push backend
         run: |
-          gcloud auth activate-service-account --key-file="${{ github.workspace }}/gcloud-key.json"
-
-      - name: Configure Docker authentication for Artifact Registry
-        run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
-
-      - name: Build and push Docker image to Artifact Registry
-        run: |
-          IMAGE_URI="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/my-bible-api:${{ github.sha }}"
-          echo "Building Docker image: $IMAGE_URI"
-          docker build -t "$IMAGE_URI" ./backend
-          echo "Pushing Docker image: $IMAGE_URI"
-          docker push "$IMAGE_URI"
-
-      - name: Deploy to Cloud Run
-        run: |
-          IMAGE_URI="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/my-bible-api:${{ github.sha }}"
-          echo "Deploying to Cloud Run with image: $IMAGE_URI"
-          gcloud run deploy my-bible-api \
-            --image "$IMAGE_URI" \
+          IMAGE_BACKEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/backend:${{ github.sha }}"
+          docker build -t "$IMAGE_BACKEND" ./backend
+          docker push "$IMAGE_BACKEND"
+          gcloud run deploy my-bible-backend \
+            --image "$IMAGE_BACKEND" \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
-            
 
+      - name: Build and push frontend
+        run: |
+          IMAGE_FRONTEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/frontend:${{ github.sha }}"
+          docker build -t "$IMAGE_FRONTEND" ./frontend
+          docker push "$IMAGE_FRONTEND"
+          gcloud run deploy my-bible-frontend \
+            --image "$IMAGE_FRONTEND" \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
