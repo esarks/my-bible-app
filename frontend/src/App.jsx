@@ -26,7 +26,6 @@ function App() {
     setSelectedChapter('');
     setVerses([]);
 
-    // Basic example of chapters count for demonstration
     const chapterCounts = {
       Genesis: 50, Exodus: 40, Leviticus: 27, Numbers: 36, Deuteronomy: 34,
       Joshua: 24, Judges: 21, Ruth: 4, '1 Samuel': 31, '2 Samuel': 24,
@@ -104,10 +103,12 @@ function App() {
         </div>
       )}
 
+      {/* Fetch button */}
       {selectedBook && selectedChapter && (
         <button onClick={fetchChapter}>Fetch Verses</button>
       )}
 
+      {/* Display verses */}
       {verses.length > 0 && (
         <div style={{ marginTop: '30px' }}>
           <h3>{selectedTranslation} - {selectedBook} {selectedChapter}</h3>
