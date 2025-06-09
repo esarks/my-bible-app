@@ -18,27 +18,33 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true  # ⭐️ Required for docker push auth
+          export_default_credentials: true  # ⭐️ Required for docker push authentication
 
-      - name: Configure Docker authentication
+      - name: Configure Docker to authenticate with Artifact Registry
         run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Build and push backend
+      - name: Build and push backend Docker image
         run: |
           IMAGE_BACKEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/backend:${{ github.sha }}"
+          echo "Building backend image: $IMAGE_BACKEND"
           docker build -t "$IMAGE_BACKEND" ./backend
+          echo "Pushing backend image to Artifact Registry..."
           docker push "$IMAGE_BACKEND"
+          echo "Deploying backend to Cloud Run..."
           gcloud run deploy my-bible-backend \
             --image "$IMAGE_BACKEND" \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
 
-      - name: Build and push frontend
+      - name: Build and push frontend Docker image
         run: |
           IMAGE_FRONTEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/frontend:${{ github.sha }}"
+          echo "Building frontend image: $IMAGE_FRONTEND"
           docker build -t "$IMAGE_FRONTEND" ./frontend
+          echo "Pushing frontend image to Artifact Registry..."
           docker push "$IMAGE_FRONTEND"
+          echo "Deploying frontend to Cloud Run..."
           gcloud run deploy my-bible-frontend \
             --image "$IMAGE_FRONTEND" \
             --platform managed \
