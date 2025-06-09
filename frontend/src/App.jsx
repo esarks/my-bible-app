@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { fetchBibleChapter } from './api'; // 🟩 Import from api.js
+import { fetchVerses } from './api';
 
 function App() {
   const [books] = useState([
@@ -12,14 +12,12 @@ function App() {
   const [selectedChapter, setSelectedChapter] = useState('');
   const [verses, setVerses] = useState([]);
 
-  // Handler: When book changes
   const handleBookChange = (e) => {
     const book = e.target.value;
     setSelectedBook(book);
     setSelectedChapter('');
     setVerses([]);
 
-    // Simple chapter range for demo
     if (book === 'Genesis') {
       setChapters(Array.from({ length: 50 }, (_, i) => i + 1));
     } else if (book === 'Exodus') {
@@ -29,13 +27,12 @@ function App() {
     }
   };
 
-  // 🟩 Fetch verses using the api.js abstraction
-  const fetchVerses = async () => {
+  const fetchChapter = async () => {
     if (!selectedBook || !selectedChapter) return;
 
     try {
-      const verses = await fetchBibleChapter(selectedBook, selectedChapter);
-      setVerses(verses);
+      const data = await fetchVerses(selectedBook, selectedChapter);
+      setVerses(data.verses || []);
     } catch (error) {
       console.error('Error fetching verses:', error);
       setVerses(['Error fetching verses']);
@@ -81,7 +78,7 @@ function App() {
       )}
 
       {selectedBook && selectedChapter && (
-        <button onClick={fetchVerses}>Fetch Verses</button>
+        <button onClick={fetchChapter}>Fetch Verses</button>
       )}
 
       {verses.length > 0 && (
