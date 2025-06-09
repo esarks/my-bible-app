@@ -1,6 +1,10 @@
+
 const express = require('express');
 const logger = require('./logger');
 const app = express();
+
+const cors = require('cors');
+app.use(cors());
 
 // Middleware to log all incoming requests
 app.use((req, res, next) => {
