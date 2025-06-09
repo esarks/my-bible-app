@@ -2,10 +2,18 @@ import { useState } from 'react';
 import { fetchVerses } from './api';
 
 function App() {
+  const [translations] = useState(['ASV', 'ASV2']); // Expand as needed
+  const [selectedTranslation, setSelectedTranslation] = useState('ASV');
+
   const [books] = useState([
-    'Genesis',
-    'Exodus',
-    'Leviticus', // Add more as you grow!
+    'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy', 'Joshua', 'Judges', 'Ruth',
+    '1 Samuel', '2 Samuel', '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra', 'Nehemiah',
+    'Esther', 'Job', 'Psalms', 'Proverbs', 'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah',
+    'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos', 'Obadiah', 'Jonah', 'Micah',
+    'Nahum', 'Habakkuk', 'Zephaniah', 'Haggai', 'Zechariah', 'Malachi', 'Matthew', 'Mark', 'Luke',
+    'John', 'Acts', 'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians', 'Philippians',
+    'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy', '2 Timothy', 'Titus', 'Philemon',
+    'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
   ]);
   const [selectedBook, setSelectedBook] = useState('');
   const [chapters, setChapters] = useState([]);
@@ -18,20 +26,31 @@ function App() {
     setSelectedChapter('');
     setVerses([]);
 
-    if (book === 'Genesis') {
-      setChapters(Array.from({ length: 50 }, (_, i) => i + 1));
-    } else if (book === 'Exodus') {
-      setChapters(Array.from({ length: 40 }, (_, i) => i + 1));
-    } else if (book === 'Leviticus') {
-      setChapters(Array.from({ length: 27 }, (_, i) => i + 1));
-    }
+    // Basic example of chapters count for demonstration
+    const chapterCounts = {
+      Genesis: 50, Exodus: 40, Leviticus: 27, Numbers: 36, Deuteronomy: 34,
+      Joshua: 24, Judges: 21, Ruth: 4, '1 Samuel': 31, '2 Samuel': 24,
+      '1 Kings': 22, '2 Kings': 25, '1 Chronicles': 29, '2 Chronicles': 36,
+      Ezra: 10, Nehemiah: 13, Esther: 10, Job: 42, Psalms: 150, Proverbs: 31,
+      Ecclesiastes: 12, 'Song of Solomon': 8, Isaiah: 66, Jeremiah: 52, Lamentations: 5,
+      Ezekiel: 48, Daniel: 12, Hosea: 14, Joel: 3, Amos: 9, Obadiah: 1, Jonah: 4,
+      Micah: 7, Nahum: 3, Habakkuk: 3, Zephaniah: 3, Haggai: 2, Zechariah: 14,
+      Malachi: 4, Matthew: 28, Mark: 16, Luke: 24, John: 21, Acts: 28, Romans: 16,
+      '1 Corinthians': 16, '2 Corinthians': 13, Galatians: 6, Ephesians: 6, Philippians: 4,
+      Colossians: 4, '1 Thessalonians': 5, '2 Thessalonians': 3, '1 Timothy': 6,
+      '2 Timothy': 4, Titus: 3, Philemon: 1, Hebrews: 13, James: 5, '1 Peter': 5,
+      '2 Peter': 3, '1 John': 5, '2 John': 1, '3 John': 1, Jude: 1, Revelation: 22
+    };
+
+    const chapterCount = chapterCounts[book] || 0;
+    setChapters(Array.from({ length: chapterCount }, (_, i) => i + 1));
   };
 
   const fetchChapter = async () => {
     if (!selectedBook || !selectedChapter) return;
 
     try {
-      const data = await fetchVerses(selectedBook, selectedChapter);
+      const data = await fetchVerses(selectedTranslation, selectedBook, selectedChapter);
       setVerses(data.verses || []);
     } catch (error) {
       console.error('Error fetching verses:', error);
@@ -43,22 +62,32 @@ function App() {
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>My Bible App</h1>
 
+      {/* Translation dropdown */}
       <div style={{ margin: '20px' }}>
-        <label htmlFor="book-select">Select Book: </label>
+        <label htmlFor="translation-select">Select Translation: </label>
         <select
-          id="book-select"
-          value={selectedBook}
-          onChange={handleBookChange}
+          id="translation-select"
+          value={selectedTranslation}
+          onChange={(e) => setSelectedTranslation(e.target.value)}
         >
-          <option value="">--Choose a Book--</option>
-          {books.map((book) => (
-            <option key={book} value={book}>
-              {book}
-            </option>
+          {translations.map((t) => (
+            <option key={t} value={t}>{t}</option>
           ))}
         </select>
       </div>
 
+      {/* Book dropdown */}
+      <div style={{ margin: '20px' }}>
+        <label htmlFor="book-select">Select Book: </label>
+        <select id="book-select" value={selectedBook} onChange={handleBookChange}>
+          <option value="">--Choose a Book--</option>
+          {books.map((book) => (
+            <option key={book} value={book}>{book}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Chapter dropdown */}
       {chapters.length > 0 && (
         <div style={{ margin: '20px' }}>
           <label htmlFor="chapter-select">Select Chapter: </label>
@@ -69,9 +98,7 @@ function App() {
           >
             <option value="">--Choose a Chapter--</option>
             {chapters.map((ch) => (
-              <option key={ch} value={ch}>
-                {ch}
-              </option>
+              <option key={ch} value={ch}>{ch}</option>
             ))}
           </select>
         </div>
@@ -83,9 +110,7 @@ function App() {
 
       {verses.length > 0 && (
         <div style={{ marginTop: '30px' }}>
-          <h3>
-            {selectedBook} {selectedChapter}
-          </h3>
+          <h3>{selectedTranslation} - {selectedBook} {selectedChapter}</h3>
           {verses.map((verse, idx) => (
             <p key={idx}>{verse}</p>
           ))}
