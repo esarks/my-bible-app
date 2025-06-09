@@ -13,17 +13,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true  # ⭐️ Required for docker push authentication
 
       - name: Configure Docker to authenticate with Artifact Registry
-        run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
 
-      - name: Build and push backend Docker image
+      - name: Build and push backend
         run: |
           IMAGE_BACKEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/backend:${{ github.sha }}"
           echo "Building backend image: $IMAGE_BACKEND"
@@ -37,7 +41,7 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated
 
-      - name: Build and push frontend Docker image
+      - name: Build and push frontend
         run: |
           IMAGE_FRONTEND="us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-bible-app-repo/frontend:${{ github.sha }}"
           echo "Building frontend image: $IMAGE_FRONTEND"
