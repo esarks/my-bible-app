@@ -1,29 +1,26 @@
 const express = require('express');
 const app = express();
-const fs = require('fs');
-const path = require('path');
 
-// New endpoint: GET /api/chapter?book=John&chapter=1
-app.get('/api/chapter', (req, res) => {
-  const { book, chapter } = req.query;
-
-  if (!book || !chapter) {
-    return res.status(400).json({ error: 'Missing book or chapter' });
-  }
-
-  // Mock data file: ./data/john_1.json
-  const filePath = path.join(__dirname, 'data', `${book.toLowerCase()}_${chapter}.json`);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).json({ error: 'Chapter not found' });
-  }
-
-  const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-  res.json(data);
-});
-
-// Health check
+// Existing root endpoint
 app.get('/', (req, res) => {
   res.send('Hello from my-bible-api!');
+});
+
+// 🟩 New /bible/chapter endpoint
+app.get('/bible/chapter', (req, res) => {
+  const book = req.query.book;
+  const chapter = req.query.chapter;
+
+  if (!book || !chapter) {
+    return res.status(400).json({ error: 'Missing book or chapter parameter' });
+  }
+
+  // For now, return a mocked response
+  res.json({
+    book,
+    chapter,
+    text: 'This is a mock text for demonstration.'
+  });
 });
 
 const port = process.env.PORT || 8080;
