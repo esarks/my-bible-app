@@ -19,7 +19,11 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
 
-      # Ensure Docker uses gcloud's authentication for Artifact Registry
+      - name: Activate service account (ensure Docker sees credentials)
+        run: |
+          echo "${{ secrets.GCP_SA_KEY }}" > "${{ github.workspace }}/gcloud-key.json"
+          gcloud auth activate-service-account --key-file="${{ github.workspace }}/gcloud-key.json"
+
       - name: Configure Docker authentication for Artifact Registry
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
@@ -41,4 +45,3 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
-
