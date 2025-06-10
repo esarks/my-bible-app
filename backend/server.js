@@ -1,89 +1,69 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const logger = require('./logger');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import twilio from 'twilio';
+
+dotenv.config();
 
 const app = express();
-app.use(cors());
-
-// ✅ Load all Bible JSON files at startup
-const bibles = {};
-const biblesDir = path.join(__dirname, '.data/bibles');
-
-fs.readdirSync(biblesDir).forEach(file => {
-  if (file.endsWith('.json')) {
-    const translationKey = file.replace('.json', '').toLowerCase();
-    const filePath = path.join(biblesDir, file);
-    try {
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      bibles[translationKey] = data;
-      logger.info(`Loaded Bible: ${translationKey}`);
-    } catch (error) {
-      logger.error(`Error loading ${file}:`, error);
-    }
-  }
-});
-
-// ✅ Log all incoming requests
-app.use((req, res, next) => {
-  logger.info('Incoming request', {
-    method: req.method,
-    url: req.url,
-    query: req.query,
-    ip: req.ip,
-  });
-  next();
-});
-
-// ✅ Root endpoint
-app.get('/', (req, res) => {
-  res.send('Hello from my-bible-api!');
-});
-
-// ✅ Dummy endpoint
-app.get('/bible/chapter', (req, res) => {
-  const { book, chapter } = req.query;
-  if (!book || !chapter) {
-    logger.warn('Missing book or chapter', { query: req.query });
-    return res.status(400).json({ error: 'Missing book or chapter parameter' });
-  }
-  logger.info('/bible/chapter dummy accessed', { book, chapter });
-  res.json({ book, chapter, text: 'This is a mock text for demonstration.' });
-});
-
-// ✅ Real /api/bible endpoint
-app.get('/api/bible', (req, res) => {
-  const { translation = 'asv', book, chapter } = req.query;
-
-  if (!book || !chapter) {
-    logger.warn('Missing book or chapter', { query: req.query });
-    return res.status(400).json({ error: 'Missing book or chapter parameter' });
-  }
-
-  const bibleData = bibles[translation.toLowerCase()];
-  if (!bibleData || !bibleData.verses) {
-    logger.warn('Translation not found or data not loaded', { translation });
-    return res.status(404).json({ error: 'Translation not found or data not loaded.' });
-  }
-
-  const verses = bibleData.verses.filter(
-    (v) =>
-      v.book_name.toLowerCase() === book.toLowerCase() &&
-      String(v.chapter) === String(chapter)
-  );
-
-  if (verses.length === 0) {
-    logger.warn('No verses found', { translation, book, chapter });
-    return res.status(404).json({ error: 'No verses found for this selection.' });
-  }
-
-  logger.info('/api/bible returning verses', { translation, book, chapter, count: verses.length });
-  res.json({ verses });
-});
-
-// ✅ Start the server
 const port = process.env.PORT || 8080;
+
+app.use(cors());
+app.use(express.json());
+
+const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
+const twilioFromNumber = process.env.TWILIO_PHONE_NUMBER;
+
+// Temporary in-memory store for verification codes
+const verificationCodes = new Map();
+
+app.post('/api/auth/request-code', async (req, res) => {
+  const { phoneNumber } = req.body;
+
+  if (!phoneNumber) {
+    return res.status(400).json({ success: false, message: 'Missing phoneNumber' });
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = Date.now() + 300_000; // 5 min validity
+
+  verificationCodes.set(phoneNumber, { code, expiresAt });
+
+  try {
+    await twilioClient.messages.create({
+      body: `Your verification code is: ${code}`,
+      from: twilioFromNumber,
+      to: phoneNumber,
+    });
+    console.log(`Sent code ${code} to ${phoneNumber}`);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Twilio error:', error);
+    res.status(500).json({ success: false, message: 'Failed to send SMS' });
+  }
+});
+
+app.post('/api/auth/verify-code', (req, res) => {
+  const { phoneNumber, code } = req.body;
+  const record = verificationCodes.get(phoneNumber);
+
+  if (!record) {
+    return res.json({ success: false, message: 'No verification code sent' });
+  }
+
+  if (record.expiresAt < Date.now()) {
+    verificationCodes.delete(phoneNumber);
+    return res.json({ success: false, message: 'Code expired' });
+  }
+
+  if (record.code !== code) {
+    return res.json({ success: false, message: 'Incorrect code' });
+  }
+
+  verificationCodes.delete(phoneNumber);
+  res.json({ success: true });
+});
+
 app.listen(port, () => {
-  logger.info(`Server is running on port ${port}`);
+  console.log(`Auth server running on port ${port}`);
 });
