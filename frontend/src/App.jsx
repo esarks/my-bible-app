@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
+import ScriptureSearchPage from './pages/ScriptureSearchPage';  // ✅ Import it!
 
 function App() {
   return (
@@ -9,7 +10,7 @@ function App() {
           <Link to="/">Home</Link> | <Link to="/login">Login</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<h1>Home page placeholder</h1>} />
+          <Route path="/" element={<ScriptureSearchPage />} />   {/* ✅ Show Scripture Search on / */}
           <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>

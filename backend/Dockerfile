@@ -16,6 +16,9 @@ RUN npm prune --omit=dev
 # Copy the rest of the application code
 COPY . .
 
+# ✅ Correct data copy step
+COPY data ./data
+
 # Expose the port that Cloud Run expects
 EXPOSE 8080
 

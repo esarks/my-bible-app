@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import twilio from 'twilio';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -14,19 +16,19 @@ app.use(express.json());
 const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 const twilioFromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// Temporary in-memory store for verification codes
 const verificationCodes = new Map();
 
+// ✅ Phone verification endpoint
 app.post('/api/auth/request-code', async (req, res) => {
   const { phoneNumber } = req.body;
 
   if (!phoneNumber) {
+    console.error('❌ Missing phoneNumber');
     return res.status(400).json({ success: false, message: 'Missing phoneNumber' });
   }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 300_000; // 5 min validity
-
+  const expiresAt = Date.now() + 300_000;
   verificationCodes.set(phoneNumber, { code, expiresAt });
 
   try {
@@ -35,10 +37,10 @@ app.post('/api/auth/request-code', async (req, res) => {
       from: twilioFromNumber,
       to: phoneNumber,
     });
-    console.log(`Sent code ${code} to ${phoneNumber}`);
+    console.log(`✅ Sent verification code ${code} to ${phoneNumber}`);
     res.json({ success: true });
   } catch (error) {
-    console.error('Twilio error:', error);
+    console.error('❌ Twilio error:', error);
     res.status(500).json({ success: false, message: 'Failed to send SMS' });
   }
 });
@@ -48,22 +50,91 @@ app.post('/api/auth/verify-code', (req, res) => {
   const record = verificationCodes.get(phoneNumber);
 
   if (!record) {
+    console.error('❌ No verification code sent');
     return res.json({ success: false, message: 'No verification code sent' });
   }
 
   if (record.expiresAt < Date.now()) {
     verificationCodes.delete(phoneNumber);
+    console.error('❌ Verification code expired');
     return res.json({ success: false, message: 'Code expired' });
   }
 
   if (record.code !== code) {
+    console.error('❌ Incorrect verification code');
     return res.json({ success: false, message: 'Incorrect code' });
   }
 
   verificationCodes.delete(phoneNumber);
+  console.log(`✅ Verification successful for ${phoneNumber}`);
   res.json({ success: true });
 });
 
+// ✅ Scripture search endpoint
+app.get('/api/bible', (req, res) => {
+  const { translation, book, chapter } = req.query;
+  console.log('📥 Request received:', { translation, book, chapter });
+
+  if (!translation || !book || !chapter) {
+    console.error('❌ Missing query parameters');
+    return res.status(400).json({ error: 'Missing required query parameters.' });
+  }
+
+  const filePath = path.resolve('data/bibles', `${translation.toLowerCase()}.json`);
+  console.log('📂 Using file path:', filePath);
+
+  if (!fs.existsSync(filePath)) {
+    console.error(`❌ Translation file not found: ${filePath}`);
+    return res.status(404).json({ error: 'Translation not found' });
+  }
+
+  try {
+    console.log('📦 Reading file...');
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    console.log('✅ File read successfully');
+
+    const bibleData = JSON.parse(fileContent);
+
+    if (!bibleData.verses || !Array.isArray(bibleData.verses)) {
+      console.error('❌ No verses array found in file');
+      return res.status(500).json({ error: 'Invalid Bible file format' });
+    }
+
+    console.log(`🔎 Searching for verses in book='${book}', chapter=${chapter}`);
+    const verses = bibleData.verses
+      .filter(
+        v =>
+          v.book_name.toLowerCase() === book.toLowerCase() &&
+          v.chapter.toString() === chapter.toString()
+      )
+      .map(v => ({
+        verse: v.verse.toString(),
+        text: v.text
+      }));
+
+    console.log(`🔎 Found ${verses.length} verses`);
+
+    if (verses.length === 0) {
+      console.error(`❌ No verses found for ${book} ${chapter}`);
+      return res.status(404).json({
+        error: `Chapter '${chapter}' not found in book '${book}'.`
+      });
+    }
+
+    console.log(`✅ Returning ${verses.length} verses`);
+    res.json({
+      translation,
+      book,
+      chapter,
+      verses
+    });
+  } catch (error) {
+    console.error('❌ Error reading Bible data:', error);
+    res.status(500).json({ error: 'Failed to load verses.' });
+  }
+});
+
+// ✅ Start the server
 app.listen(port, () => {
-  console.log(`Auth server running on port ${port}`);
+  console.log(`🚀 Auth and Bible server running on port ${port}`);
 });
