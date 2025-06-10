@@ -18,6 +18,14 @@ const twilioFromNumber = process.env.TWILIO_PHONE_NUMBER;
 
 const verificationCodes = new Map();
 
+// In-memory store for the user profile (can be replaced with a DB)
+let userProfile = {
+  phoneNumber: '',  // This will be filled in after login
+  name: '',
+  email: '',
+  emailVerified: false
+};
+
 // ✅ Phone verification endpoint
 app.post('/api/auth/request-code', async (req, res) => {
   const { phoneNumber } = req.body;
@@ -66,6 +74,7 @@ app.post('/api/auth/verify-code', (req, res) => {
   }
 
   verificationCodes.delete(phoneNumber);
+  userProfile.phoneNumber = phoneNumber;  // Save phone number to profile
   console.log(`✅ Verification successful for ${phoneNumber}`);
   res.json({ success: true });
 });
@@ -132,6 +141,27 @@ app.get('/api/bible', (req, res) => {
     console.error('❌ Error reading Bible data:', error);
     res.status(500).json({ error: 'Failed to load verses.' });
   }
+});
+
+// ✅ User profile endpoints
+app.get('/api/user-profile', (req, res) => {
+  console.log('📥 User profile requested');
+  res.json({ success: true, profile: userProfile });
+});
+
+app.post('/api/user-profile', (req, res) => {
+  const { name, email } = req.body;
+
+  if (!name || !email) {
+    console.error('❌ Missing name or email');
+    return res.status(400).json({ success: false, error: 'Missing name or email' });
+  }
+
+  userProfile.name = name;
+  userProfile.email = email;
+  console.log('✅ User profile updated:', userProfile);
+
+  res.json({ success: true });
 });
 
 // ✅ Start the server

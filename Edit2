@@ -1,0 +1,41 @@
+backend
+
+docker build -t my-bible-backend .
+docker run -it --rm -p 8080:8080 --network bible-net --name my-bible-backend my-bible-backend
+
+docker build -t my-bible-backend .
+docker run --env-file .env -it --rm -p 8080:8080 --network bible-net --name my-bible-backend my-bible-backend
+
+frontend
+
+docker build -t my-bible-frontend .
+docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my-bible-frontend
+
+
+
+
+# Stop and remove all running Docker containers only if there are containers
+>> $containers = docker ps -q
+>> if ($containers) {
+>>     docker stop $containers
+>> }
+>>
+>> $allContainers = docker ps -aq
+>> if ($allContainers) {
+>>     docker rm $allContainers
+>> }
+>>
+>> # Start the backend build and run in a new PowerShell window
+>> Start-Process powershell -ArgumentList @"
+>> cd C:\Users\ptm\onedrive\documents\github\my-bible-app\backend
+>> docker build -t my-bible-backend .
+>> docker run --env-file .env -it --rm -p 8080:8080 --network bible-net --name my-bible-backend my-bible-backend
+>> "@
+>>
+>> # Start the frontend build and run in a new PowerShell window
+>> Start-Process powershell -ArgumentList @"
+>> cd C:\Users\ptm\onedrive\documents\github\my-bible-app\frontend
+>> docker build -t my-bible-frontend .
+>> docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my-bible-frontend
+>> "@
+>>

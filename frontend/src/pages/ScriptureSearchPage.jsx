@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom'; // ✅ Add Link for navigation
 import { fetchVerses } from '../api';
 
 const ScriptureSearchPage = () => {
@@ -62,6 +63,11 @@ const ScriptureSearchPage = () => {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      {/* ✅ Add navigation links to Home and Profile */}
+      <div style={{ marginBottom: '20px' }}>
+        <Link to="/">Home</Link> | <Link to="/profile">Profile</Link>
+      </div>
+
       <h1>Scripture Search</h1>
 
       <div style={{ margin: '20px' }}>
@@ -120,4 +126,3 @@ const ScriptureSearchPage = () => {
 };
 
 export default ScriptureSearchPage;
-
