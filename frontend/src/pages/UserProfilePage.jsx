@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUserProfile, updateUserProfile } from '../api/auth'; // update as needed
+import { fetchUserProfile, updateUserProfile } from '../api/auth'; // Adjust as needed!
 
 const UserProfilePage = () => {
   const [profile, setProfile] = useState({
@@ -22,13 +22,15 @@ const UserProfilePage = () => {
         setLoading(false);
       }
     };
-
     loadProfile();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfile((prev) => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSave = async () => {
@@ -41,18 +43,20 @@ const UserProfilePage = () => {
     }
   };
 
-  if (loading) return <p>Loading profile...</p>;
+  if (loading) {
+    return <p>Loading profile...</p>;
+  }
 
   return (
     <div style={{ margin: '20px' }}>
       <h1>User Profile</h1>
 
-      <div>
+      <div style={{ marginBottom: '10px' }}>
         <label>Phone Number:</label>
         <input type="text" value={profile.phoneNumber} readOnly />
       </div>
 
-      <div>
+      <div style={{ marginBottom: '10px' }}>
         <label>Name:</label>
         <input
           name="name"
@@ -62,7 +66,7 @@ const UserProfilePage = () => {
         />
       </div>
 
-      <div>
+      <div style={{ marginBottom: '10px' }}>
         <label>Email:</label>
         <input
           name="email"
@@ -72,13 +76,9 @@ const UserProfilePage = () => {
         />
       </div>
 
-      <div>
+      <div style={{ marginBottom: '10px' }}>
         <label>Email Verified:</label>
-        <input
-          type="checkbox"
-          checked={profile.emailVerified}
-          readOnly
-        />
+        <input type="checkbox" checked={profile.emailVerified} readOnly />
       </div>
 
       <button onClick={handleSave}>Save</button>
