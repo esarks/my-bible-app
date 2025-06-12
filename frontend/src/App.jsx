@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import ScriptureSearchPage from './pages/ScriptureSearchPage';
-import UserProfilePage from './pages/UserProfilePage'; // ✅ Import the new UserProfilePage!
+import UserProfilePage from './pages/UserProfilePage';
+import BibleViewer from './components/BibleViewer'; // ✅ Now using BibleViewer as the main page
 
 function App() {
   return (
@@ -11,9 +11,9 @@ function App() {
           <Link to="/">Home</Link> | <Link to="/login">Login</Link> | <Link to="/profile">Profile</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<ScriptureSearchPage />} />
+          <Route path="/" element={<BibleViewer />} /> {/* ✅ Show NIV-enabled viewer here */}
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile" element={<UserProfilePage />} /> {/* ✅ Add this line */}
+          <Route path="/profile" element={<UserProfilePage />} />
         </Routes>
       </div>
     </Router>

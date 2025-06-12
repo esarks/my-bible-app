@@ -15,6 +15,8 @@ import { loadBibles } from './utils/preloadBibles.js';
 
 process.stdout.write = process.stdout.write.bind(process.stdout);
 
+console.log('******************************************************************** Start');
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
