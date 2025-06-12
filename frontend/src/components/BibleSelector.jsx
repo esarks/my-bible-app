@@ -1,7 +1,19 @@
 // frontend/src/components/BibleSelector.jsx
 import React, { useEffect } from 'react';
 
-const localTranslations = ['ASV', 'KJV'];
+// ✅ Ensure these match the actual lowercase JSON filenames (e.g., asvs.json -> 'ASVS')
+const localTranslations = [
+  'ASV',
+  'ASVS', // was ASV2
+  'Bishops',
+  'Coverdale',
+  'Geneva',
+  'KJV',
+  'KJV_Strongs',
+  'NET',
+  'Tyndale',
+  'WEB',
+];
 const apiTranslations = ['NIV'];
 
 const translationOptions = [
