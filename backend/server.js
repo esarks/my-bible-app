@@ -2,10 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import twilio from 'twilio';
+import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 8080;
@@ -13,23 +18,34 @@ const port = process.env.PORT || 8080;
 app.use(cors());
 app.use(express.json());
 
+const prisma = new PrismaClient();
 const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
 const twilioFromNumber = process.env.TWILIO_PHONE_NUMBER;
 
 const verificationCodes = new Map();
 
-// In-memory store for the user profile (can be replaced with a DB)
-let userProfile = {
-  phoneNumber: '',  // This will be filled in after login
-  name: '',
-  email: '',
-  emailVerified: false
+// ✅ DB Connect with Retry Logic
+const connectWithRetry = async (retries = 30, delay = 5000) => {
+  try {
+    console.log('🔍 DATABASE_URL:', process.env.DATABASE_URL);
+    await prisma.$connect();
+    console.log('✅ Connected to Postgres');
+  } catch (error) {
+    if (retries === 0) {
+      console.error('❌ Could not connect to DB:', error);
+      process.exit(1);
+    } else {
+      console.warn(`⚠️ Retry DB connection in ${delay / 1000}s... (${retries} retries left)`);
+      setTimeout(() => connectWithRetry(retries - 1, delay), delay);
+    }
+  }
 };
 
-// ✅ Phone verification endpoint
+connectWithRetry();
+
+// ✅ Request Verification Code
 app.post('/api/auth/request-code', async (req, res) => {
   const { phoneNumber } = req.body;
-
   if (!phoneNumber) {
     console.error('❌ Missing phoneNumber');
     return res.status(400).json({ success: false, message: 'Missing phoneNumber' });
@@ -53,118 +69,123 @@ app.post('/api/auth/request-code', async (req, res) => {
   }
 });
 
+// ✅ Verify Code
 app.post('/api/auth/verify-code', (req, res) => {
   const { phoneNumber, code } = req.body;
   const record = verificationCodes.get(phoneNumber);
 
   if (!record) {
-    console.error('❌ No verification code sent');
     return res.json({ success: false, message: 'No verification code sent' });
   }
 
   if (record.expiresAt < Date.now()) {
     verificationCodes.delete(phoneNumber);
-    console.error('❌ Verification code expired');
     return res.json({ success: false, message: 'Code expired' });
   }
 
   if (record.code !== code) {
-    console.error('❌ Incorrect verification code');
     return res.json({ success: false, message: 'Incorrect code' });
   }
 
   verificationCodes.delete(phoneNumber);
-  userProfile.phoneNumber = phoneNumber;  // Save phone number to profile
-  console.log(`✅ Verification successful for ${phoneNumber}`);
-  res.json({ success: true });
+  console.log(`✅ Verified phone number: ${phoneNumber}`);
+  res.json({ success: true, phoneNumber });
 });
 
-// ✅ Scripture search endpoint
-app.get('/api/bible', (req, res) => {
-  const { translation, book, chapter } = req.query;
-  console.log('📥 Request received:', { translation, book, chapter });
+// ✅ Fetch User Profile
+app.get('/api/user-profile', async (req, res) => {
+  const phoneNumber = req.query.phoneNumber;
+  console.log('📥 GET /api/user-profile?phoneNumber=' + phoneNumber);
 
-  if (!translation || !book || !chapter) {
-    console.error('❌ Missing query parameters');
-    return res.status(400).json({ error: 'Missing required query parameters.' });
-  }
-
-  const filePath = path.resolve('data/bibles', `${translation.toLowerCase()}.json`);
-  console.log('📂 Using file path:', filePath);
-
-  if (!fs.existsSync(filePath)) {
-    console.error(`❌ Translation file not found: ${filePath}`);
-    return res.status(404).json({ error: 'Translation not found' });
+  if (!phoneNumber) {
+    return res.status(400).json({ success: false, error: 'Missing phoneNumber' });
   }
 
   try {
-    console.log('📦 Reading file...');
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    console.log('✅ File read successfully');
+    const profile = await prisma.userProfile.findUnique({ where: { phoneNumber } });
 
-    const bibleData = JSON.parse(fileContent);
-
-    if (!bibleData.verses || !Array.isArray(bibleData.verses)) {
-      console.error('❌ No verses array found in file');
-      return res.status(500).json({ error: 'Invalid Bible file format' });
-    }
-
-    console.log(`🔎 Searching for verses in book='${book}', chapter=${chapter}`);
-    const verses = bibleData.verses
-      .filter(
-        v =>
-          v.book_name.toLowerCase() === book.toLowerCase() &&
-          v.chapter.toString() === chapter.toString()
-      )
-      .map(v => ({
-        verse: v.verse.toString(),
-        text: v.text
-      }));
-
-    console.log(`🔎 Found ${verses.length} verses`);
-
-    if (verses.length === 0) {
-      console.error(`❌ No verses found for ${book} ${chapter}`);
-      return res.status(404).json({
-        error: `Chapter '${chapter}' not found in book '${book}'.`
+    if (!profile) {
+      console.log('⚠️ No user profile found for', phoneNumber);
+      return res.json({
+        success: true,
+        profile: { phoneNumber, name: '', email: '', emailVerified: false }
       });
     }
 
-    console.log(`✅ Returning ${verses.length} verses`);
-    res.json({
-      translation,
-      book,
-      chapter,
-      verses
-    });
+    console.log('✅ Loaded user profile:', profile);
+    res.json({ success: true, profile });
   } catch (error) {
-    console.error('❌ Error reading Bible data:', error);
-    res.status(500).json({ error: 'Failed to load verses.' });
+    console.error('❌ Error loading profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to load profile' });
   }
 });
 
-// ✅ User profile endpoints
-app.get('/api/user-profile', (req, res) => {
-  console.log('📥 User profile requested');
-  res.json({ success: true, profile: userProfile });
-});
+// ✅ Save or Update Profile
+app.post('/api/user-profile', async (req, res) => {
+  const { phoneNumber, name, email } = req.body;
+  console.log('📥 POST /api/user-profile:', req.body);
 
-app.post('/api/user-profile', (req, res) => {
-  const { name, email } = req.body;
-
-  if (!name || !email) {
-    console.error('❌ Missing name or email');
-    return res.status(400).json({ success: false, error: 'Missing name or email' });
+  if (!phoneNumber || !name || !email) {
+    return res.status(400).json({ success: false, error: 'Missing phoneNumber, name, or email' });
   }
 
-  userProfile.name = name;
-  userProfile.email = email;
-  console.log('✅ User profile updated:', userProfile);
+  try {
+    let profile = await prisma.userProfile.findUnique({ where: { phoneNumber } });
 
-  res.json({ success: true });
+    if (profile) {
+      profile = await prisma.userProfile.update({
+        where: { phoneNumber },
+        data: { name, email },
+      });
+      console.log('✅ Updated profile:', profile);
+    } else {
+      profile = await prisma.userProfile.create({
+        data: { phoneNumber, name, email },
+      });
+      console.log('✅ Created profile:', profile);
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error saving profile:', error);
+    res.status(500).json({ success: false, error: 'Failed to save profile' });
+  }
 });
 
-// ✅ Start the server
+// ✅ Fetch Bible Chapter
+app.get('/api/bible', (req, res) => {
+  const { translation, book, chapter } = req.query;
+
+  if (!translation || !book || !chapter) {
+    return res.status(400).json({ error: 'Missing translation, book, or chapter' });
+  }
+
+  const filePath = path.join(
+    __dirname,
+    'data',
+    'bibles',
+    translation.toUpperCase(),
+    book,
+    `${chapter}.json`
+  );
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error(`❌ Could not find chapter file at ${filePath}`);
+      return res.status(404).json({ error: 'Chapter not found' });
+    }
+
+    try {
+      const verses = JSON.parse(data);
+      res.json({ verses });
+    } catch (parseError) {
+      console.error('❌ JSON parse error:', parseError);
+      res.status(500).json({ error: 'Failed to parse chapter JSON' });
+    }
+  });
+});
+
+// ✅ Start server
 app.listen(port, () => {
   console.log(`🚀 Auth and Bible server running on port ${port}`);
 });

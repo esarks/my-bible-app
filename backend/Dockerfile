@@ -4,20 +4,23 @@ FROM node:20
 # Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json
+# Copy package.json and lock file
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Remove devDependencies to reduce size
-RUN npm prune --omit=dev
+# Copy Prisma schema
+COPY data/prisma ./prisma
 
-# Copy the rest of the application code
+# Copy the rest of the app (including .env!)
 COPY . .
 
-# ✅ Correct data copy step
-COPY data ./data
+# Generate Prisma client **after** copying .env
+RUN npx prisma generate
+
+# Remove devDependencies to reduce image size
+RUN npm prune --omit=dev
 
 # Expose the port that Cloud Run expects
 EXPOSE 8080

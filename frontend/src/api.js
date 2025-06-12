@@ -1,5 +1,5 @@
 // Use environment variable injected by Vite (like VITE_API_URL)
-const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 
 /**
  * Fetches verses from the backend API.

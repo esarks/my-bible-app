@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { fetchUserProfile, updateUserProfile } from '../api/auth'; // Adjust as needed!
+import { fetchUserProfile, updateUserProfile, getVerifiedPhoneNumber } from '../api/auth';
+import { useNavigate } from 'react-router-dom';
 
 const UserProfilePage = () => {
   const [profile, setProfile] = useState({
@@ -9,21 +10,38 @@ const UserProfilePage = () => {
     emailVerified: false
   });
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  // Load profile on mount
   useEffect(() => {
+    const phone = getVerifiedPhoneNumber();
+
+    if (!phone) {
+      alert('❌ Phone number not verified. Redirecting...');
+      navigate('/verify');
+      return;
+    }
+
     const loadProfile = async () => {
       try {
-        const data = await fetchUserProfile();
-        setProfile(data);
+        const data = await fetchUserProfile(phone);
+        setProfile((prev) => ({
+          ...prev,
+          ...data,
+          phoneNumber: phone
+        }));
       } catch (error) {
         console.error('❌ Failed to load profile:', error);
+        setProfile((prev) => ({
+          ...prev,
+          phoneNumber: phone
+        }));
       } finally {
         setLoading(false);
       }
     };
+
     loadProfile();
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,9 +61,7 @@ const UserProfilePage = () => {
     }
   };
 
-  if (loading) {
-    return <p>Loading profile...</p>;
-  }
+  if (loading) return <p>Loading profile...</p>;
 
   return (
     <div style={{ margin: '20px' }}>

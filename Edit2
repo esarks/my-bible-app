@@ -1,5 +1,9 @@
 backend
 
+docker-compose build --no-cache backend
+docker-compose up
+
+
 docker build -t my-bible-backend .
 docker run -it --rm -p 8080:8080 --network bible-net --name my-bible-backend my-bible-backend
 
@@ -11,7 +15,19 @@ frontend
 docker build -t my-bible-frontend .
 docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my-bible-frontend
 
+*******************************************************************
+start postgress - must be in backend
+*******************************************************************
+docker-compose up -d
 
+docker-compose build --no-cache backend
+docker-compose up
+
+*******************************************************************
+Connect to postgress from powershell to test it
+*******************************************************************
+apk add --no-cache postgresql-client
+psql -h my-postgres -U postgres -d mydb
 
 
 # Stop and remove all running Docker containers only if there are containers
@@ -39,3 +55,42 @@ docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my
 >> docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my-bible-frontend
 >> "@
 >>
+
+
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+# Stop and remove all running Docker containers only if there are containers
+$containers = docker ps -q
+if ($containers) {
+    docker stop $containers
+}
+
+$allContainers = docker ps -aq
+if ($allContainers) {
+    docker rm $allContainers
+}
+
+# Create backend script
+$backendScript = @"
+cd 'C:\Users\ptm\onedrive\documents\github\my-bible-app\backend'
+docker build -t my-bible-backend .
+docker run --env-file .env -it --rm -p 8080:8080 --network bible-net --name my-bible-backend my-bible-backend
+pause
+"@
+$backendScriptPath = "$env:TEMP\run-backend.ps1"
+$backendScript | Out-File -FilePath $backendScriptPath -Encoding utf8
+
+# Create frontend script
+$frontendScript = @"
+cd 'C:\Users\ptm\onedrive\documents\github\my-bible-app\frontend'
+docker build -t my-bible-frontend .
+docker run -it --rm -p 3000:8080 --network bible-net --name my-bible-frontend my-bible-frontend
+pause
+"@
+$frontendScriptPath = "$env:TEMP\run-frontend.ps1"
+$frontendScript | Out-File -FilePath $frontendScriptPath -Encoding utf8
+
+# Launch new PowerShell windows for backend and frontend
+Start-Process powershell.exe -ArgumentList "-NoExit", "-File `"$backendScriptPath`""
+Start-Process powershell.exe -ArgumentList "-NoExit", "-File `"$frontendScriptPath`""
