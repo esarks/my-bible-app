@@ -5,6 +5,13 @@ import axios from 'axios';
 const router = express.Router();
 const NIV_BIBLE_ID = '06125adad2d5898a-01';
 
+const apiTranslations = {
+  NIV: {
+    id: NIV_BIBLE_ID,
+    source: 'api.bible',
+  },
+};
+
 export default function bibleRoutes(bibles) {
   router.get('/api/bible', async (req, res) => {
     const { translation = 'asv', book, chapter } = req.query;
@@ -15,40 +22,60 @@ export default function bibleRoutes(bibles) {
       return res.status(400).json({ error: 'Missing book or chapter parameter' });
     }
 
-    // 🪄 Handle NIV via external API
-    if (translation.toUpperCase() === 'NIV') {
-      console.log(`🌐 Using API.Bible to fetch NIV: book=${book}, chapter=${chapter}`);
+    const upperTranslation = translation.toUpperCase();
+
+    // ✅ Handle external API translations
+    if (apiTranslations[upperTranslation]) {
+      const { id, source } = apiTranslations[upperTranslation];
+      console.log(`🌐 Fetching ${translation} via ${source}...`);
 
       try {
         const response = await axios.get(
-          `https://api.scripture.api.bible/v1/bibles/${NIV_BIBLE_ID}/passages`,
+          `https://api.scripture.api.bible/v1/bibles/${id}/passages`,
           {
             headers: { 'api-key': process.env.BIBLE_API_KEY },
-            params: { bookId: book, chapter },
+            params: {
+              passage: `${book} ${chapter}`,
+              contentType: 'html',
+              includeFootnotes: false,
+              includeHeadings: false,
+            },
           }
         );
 
-        const verses = response.data?.data?.content || response.data;
-        console.log(`✅ Successfully fetched NIV ${book} ${chapter} from API.Bible`);
-        res.json({ source: 'api.bible', content: verses });
-      } catch (error) {
-        console.error(`❌ Failed to fetch NIV ${book} ${chapter}:`, error.message);
-        res.status(500).json({ error: 'Failed to fetch NIV from external API.' });
-      }
+        const html = response.data?.data?.content;
+        if (!html) {
+          console.warn('🚫 No HTML content returned from API.');
+          return res.status(404).json({ error: 'No content found for this passage.' });
+        }
 
-      return;
+        console.log(`✅ API.Bible responded with content for ${translation} ${book} ${chapter}`);
+        return res.json({ source, content: html });
+      } catch (error) {
+        console.error(`❌ Error fetching ${translation} from API:`);
+
+        if (error.response) {
+          console.error('📉 Status:', error.response.status);
+          console.error('📨 Headers:', error.response.headers);
+          console.error('📦 Data:', error.response.data);
+        } else if (error.request) {
+          console.error('📡 No response received:', error.request);
+        } else {
+          console.error('🛑 Error message:', error.message);
+        }
+
+        return res.status(500).json({ error: `Failed to fetch ${translation} from external API.` });
+      }
     }
 
-    // 📚 Handle local JSON Bible translations
-    const key = translation.toLowerCase();
-    const bibleData = bibles[key];
-
+    // ✅ Handle local JSON-based translations
+    const bibleData = bibles[translation.toLowerCase()];
     if (!bibleData || !Array.isArray(bibleData.verses)) {
-      console.warn(`⚠️ Translation not found or invalid: ${translation}`);
+      console.warn(`⚠️ Local translation not found: ${translation}`);
       return res.status(404).json({ error: 'Translation not found' });
     }
 
-    console.log(`🔍 Searching local translation: ${translation} for ${book} ${chapter}`);
+    console.log(`🔍 Filtering verses for ${translation} from JSON`);
     const verses = bibleData.verses.filter(
       v => v.book_name.toLowerCase() === book.toLowerCase() && String(v.chapter) === String(chapter)
     );
@@ -59,7 +86,7 @@ export default function bibleRoutes(bibles) {
     }
 
     console.log(`✅ Found ${verses.length} verses for ${translation} ${book} ${chapter}`);
-    res.json({ verses });
+    res.json({ source: 'local', verses });
   });
 
   return router;
