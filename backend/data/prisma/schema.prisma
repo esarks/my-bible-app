@@ -15,3 +15,16 @@ model UserProfile {
   email         String?
   emailVerified Boolean  @default(false)
 }
+
+model Note {
+  id         String   @id @default(uuid())
+  loginId    String
+  book       String
+  chapter    Int?     // nullable for book-level notes
+  verse      Int?     // nullable for book/chapter-level notes
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([loginId, book, chapter, verse])
+}

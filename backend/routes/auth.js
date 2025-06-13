@@ -5,7 +5,8 @@ const router = express.Router();
 const verificationCodes = new Map();
 
 export default function authRoutes(twilioClient, twilioFromNumber) {
-  router.post('/api/auth/request-code', async (req, res) => {
+
+    router.post('/api/auth/request-code', async (req, res) => {
     const { phoneNumber } = req.body;
     console.log(`📥 Received request for verification code to ${phoneNumber}`);
 
@@ -22,13 +23,15 @@ export default function authRoutes(twilioClient, twilioFromNumber) {
     console.log(`✅ Generated code ${code} for ${phoneNumber} (expires in 5 minutes)`);
 
     try {
+//Once twillo is working, uncomment this code
       await twilioClient.messages.create({
         body: `Your verification code is: ${code}`,
         from: twilioFromNumber,
         to: phoneNumber,
       });
       console.log(`📤 Sent verification code to ${phoneNumber} via Twilio`);
-      res.json({ success: true });
+      res.json({ success: true, code });
+
     } catch (error) {
       console.error('❌ Twilio send error:', error.message);
       res.status(500).json({ success: false, message: 'Failed to send SMS' });
