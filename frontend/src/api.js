@@ -5,6 +5,7 @@ const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
  */
 export const fetchVerses = async (translation, book, chapter) => {
   const url = `${baseURL}/api/bible?translation=${translation}&book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}`;
+  console.info('fetchVerses →', { translation, book, chapter, url });
   const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to fetch verses');
   return response.json();
@@ -12,7 +13,7 @@ export const fetchVerses = async (translation, book, chapter) => {
 
 /**
  * Saves a note to the backend.
- * @param {object} reference - { userId, book, chapter, verse }
+ * @param {object} reference - { loginId, book, chapter, verse }
  * @param {string} content - note content
  */
 export const saveNote = async (reference, content) => {
@@ -27,11 +28,11 @@ export const saveNote = async (reference, content) => {
 
 /**
  * Loads an existing note from the backend.
- * @param {object} reference - { userId, book, chapter, verse }
+ * @param {object} reference - { loginId, book, chapter, verse }
  */
 export const loadNote = async (reference) => {
   const params = new URLSearchParams({
-    userId: reference.userId,
+    loginId: reference.loginId, // ✅ fixed
     book: reference.book,
     chapter: reference.chapter ?? '',
     verse: reference.verse ?? '',

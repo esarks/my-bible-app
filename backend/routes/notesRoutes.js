@@ -5,68 +5,91 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// Get notes for a user by book/chapter/verse
+// GET /api/notes?loginId=...&book=...&chapter=...&verse=...
 router.get('/', async (req, res) => {
-  const { userId, book, chapter, verse } = req.query;
+  const { loginId, book, chapter, verse } = req.query;
 
-  if (!userId || !book) {
-    return res.status(400).json({ error: 'Missing required fields: userId, book' });
+  console.log('📥 Incoming GET /api/notes');
+  console.log('🔍 Query Params:', { loginId, book, chapter, verse });
+
+  if (!loginId || !book) {
+    console.warn('⚠️ Missing required fields in GET request');
+    return res.status(400).json({ error: 'Missing required fields: loginId and book are required.' });
+  }
+
+  const parsedChapter = chapter ? parseInt(chapter, 10) : null;
+  const parsedVerse = verse ? parseInt(verse, 10) : null;
+
+  if ((chapter && isNaN(parsedChapter)) || (verse && isNaN(parsedVerse))) {
+    console.warn('⚠️ Invalid chapter or verse input');
+    return res.status(400).json({ error: 'Chapter and verse must be valid numbers if provided.' });
   }
 
   try {
     const notes = await prisma.note.findMany({
       where: {
-        loginId: userId,
+        loginId,
         book,
-        chapter: chapter ? parseInt(chapter) : null,
-        verse: verse ? parseInt(verse) : null
+        chapter: parsedChapter,
+        verse: parsedVerse
       },
     });
-    res.json(notes.length > 0 ? notes[0] : {}); // assuming one note per location
+
+    console.log(`✅ Found ${notes.length} note(s)`);
+    res.json(notes.length > 0 ? notes[0] : {});
   } catch (err) {
-    console.error('Failed to fetch notes:', err);
+    console.error('❌ Failed to fetch notes:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Save or update a note
+// POST /api/notes
 router.post('/', async (req, res) => {
-  const { userId, book, chapter, verse, content } = req.body;
+  const { loginId, book, chapter, verse, content } = req.body;
 
-  if (!userId || !book || !content) {
-    return res.status(400).json({ error: 'Missing required fields: userId, book, content' });
+  console.log('📥 Incoming POST /api/notes');
+  console.log('📝 Request Body:', { loginId, book, chapter, verse, content });
+
+  if (!loginId || !book || !content) {
+    console.warn('⚠️ Missing required fields in POST request');
+    return res.status(400).json({ error: 'Missing required fields: loginId, book, content are required.' });
   }
+
+  const parsedChapter = chapter ?? null;
+  const parsedVerse = verse ?? null;
 
   try {
     const existingNote = await prisma.note.findFirst({
       where: {
-        loginId: userId,
+        loginId,
         book,
-        chapter: chapter ?? null,
-        verse: verse ?? null
+        chapter: parsedChapter,
+        verse: parsedVerse
       },
     });
 
     if (existingNote) {
+      console.log('✏️ Updating existing note');
       const updated = await prisma.note.update({
         where: { id: existingNote.id },
         data: { content },
       });
       res.json(updated);
     } else {
+      console.log('🆕 Creating new note');
       const created = await prisma.note.create({
         data: {
-          loginId: userId,
+          loginId,
           book,
-          chapter: chapter ?? null,
-          verse: verse ?? null,
+          chapter: parsedChapter,
+          verse: parsedVerse,
           content,
         },
       });
       res.json(created);
     }
   } catch (err) {
-    console.error('Failed to save note:', err);
+    console.error('❌ Failed to save note:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

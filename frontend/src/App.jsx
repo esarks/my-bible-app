@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
-import BibleViewer from './components/BibleViewer';
+import BibleViewer from './pages/BibleViewerPage';
 import { useState } from 'react';
 
 function App() {

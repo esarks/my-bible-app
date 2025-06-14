@@ -24,6 +24,12 @@ const UserProfilePage = () => {
     const loadProfile = async () => {
       try {
         const data = await fetchUserProfile(phone);
+        localStorage.setItem('loginId', data.id);
+        localStorage.setItem('userName', data.name || '');
+        localStorage.setItem('userEmail', data.email || '');
+        console.info("UserProfilePage: data.id", data.id);
+        console.info("UserProfilePage: data.name", data.name);
+        console.info("UserProfilePage: data.email", data.email);        
         setProfile((prev) => ({
           ...prev,
           ...data,
