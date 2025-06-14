@@ -1,9 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
-import BibleViewer from './components/BibleViewer'; // ✅ Correct import!
+import BibleViewer from './components/BibleViewer';
+import { useState } from 'react';
 
 function App() {
+  const [userId, setUserId] = useState('test-user'); // Replace with actual login logic later
+
   return (
     <Router>
       <div style={{ textAlign: 'center', marginTop: '30px' }}>
@@ -11,7 +14,7 @@ function App() {
           <Link to="/">Home</Link> | <Link to="/login">Login</Link> | <Link to="/profile">Profile</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<BibleViewer />} /> {/* ✅ Root shows the main Bible Viewer */}
+          <Route path="/" element={<BibleViewer userId={userId} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile" element={<UserProfilePage />} />
         </Routes>

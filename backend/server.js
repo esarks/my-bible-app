@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url';
 import bibleRoutes from './routes/bible.js';
 import authRoutes from './routes/auth.js';
 import userProfileRoutes from './routes/userProfile.js';
+import notesRoutes from './routes/notesRoutes.js';
 import { loadBibles } from './utils/preloadBibles.js';
 
 process.stdout.write = process.stdout.write.bind(process.stdout);
@@ -27,6 +28,7 @@ const port = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/notes', notesRoutes);
 
 const prisma = new PrismaClient();
 const twilioClient = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -58,6 +60,7 @@ connectWithRetry();
 app.use(bibleRoutes(bibles));
 app.use(authRoutes(twilioClient, twilioFromNumber));
 app.use(userProfileRoutes(prisma));
+app.use('/api/notes', notesRoutes); // ✅ Correct mount path
 
 // Start server
 app.listen(port, () => {

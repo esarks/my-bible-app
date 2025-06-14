@@ -1,21 +1,42 @@
-// Use environment variable injected by Vite (like VITE_API_URL)
 const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8081';
 
 /**
  * Fetches verses from the backend API.
- * @param {string} translation - The translation (e.g., asv, kjv).
- * @param {string} book - The name of the book.
- * @param {number|string} chapter - The chapter number.
- * @returns {Promise<object>} - JSON response with verses.
  */
 export const fetchVerses = async (translation, book, chapter) => {
   const url = `${baseURL}/api/bible?translation=${translation}&book=${encodeURIComponent(book)}&chapter=${encodeURIComponent(chapter)}`;
   const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch verses');
+  return response.json();
+};
 
-  if (!response.ok) {
-    console.error(`API request failed: ${response.status} ${response.statusText}`);
-    throw new Error('Failed to fetch verses');
-  }
+/**
+ * Saves a note to the backend.
+ * @param {object} reference - { userId, book, chapter, verse }
+ * @param {string} content - note content
+ */
+export const saveNote = async (reference, content) => {
+  const response = await fetch(`${baseURL}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...reference, content }),
+  });
+  if (!response.ok) throw new Error('Failed to save note');
+  return response.json();
+};
 
+/**
+ * Loads an existing note from the backend.
+ * @param {object} reference - { userId, book, chapter, verse }
+ */
+export const loadNote = async (reference) => {
+  const params = new URLSearchParams({
+    userId: reference.userId,
+    book: reference.book,
+    chapter: reference.chapter ?? '',
+    verse: reference.verse ?? '',
+  });
+  const response = await fetch(`${baseURL}/api/notes?${params.toString()}`);
+  if (!response.ok) throw new Error('Failed to load note');
   return response.json();
 };

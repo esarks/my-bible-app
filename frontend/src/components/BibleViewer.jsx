@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import BibleSelector from './BibleSelector';
-import { fetchVerses } from '../api';
+import { fetchVerses, loadNote } from '../api';
+import NotesEditor from './NotesEditor';
+import { PencilIcon } from '@heroicons/react/24/solid';
 
 const books = [
   'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
@@ -45,6 +46,8 @@ export default function BibleViewer() {
   const [verses, setVerses] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [noteTarget, setNoteTarget] = useState(null);
+  const [notes, setNotes] = useState({});
 
   useEffect(() => {
     if (book && chapterCounts[book]) {
@@ -66,10 +69,17 @@ export default function BibleViewer() {
     setLoading(true);
     setError('');
     setVerses([]);
+    setNotes({});
 
     try {
       const data = await fetchVerses(translation, book, chapter);
+      const allNotes = {};
+      for (const v of data.verses) {
+        const n = await loadNote({ book, chapter: parseInt(chapter), verse: v.verse });
+        if (n?.content) allNotes[v.verse] = n.content;
+      }
       setVerses(data.verses || []);
+      setNotes(allNotes);
     } catch (err) {
       console.error('Error fetching verses:', err);
       setError('Failed to load content.');
@@ -79,12 +89,12 @@ export default function BibleViewer() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-4 text-center">
-      <h1 className="text-xl font-bold mb-4">📖 Bible Viewer</h1>
+    <div className="p-4">
+      <h1 className="text-xl font-bold mb-4 text-center">📖 Bible Viewer</h1>
 
       <BibleSelector selected={translation} onChange={setTranslation} />
 
-      <div className="mb-4">
+      <div className="my-4">
         <label className="block text-sm font-medium text-gray-700 mb-1">Book</label>
         <select
           value={book}
@@ -126,11 +136,45 @@ export default function BibleViewer() {
       {error && <p className="text-red-600 mt-4">❌ {error}</p>}
 
       {verses.length > 0 && (
-        <div className="bg-white p-4 border rounded shadow mt-4">
+        <div className="bg-white p-4 border rounded shadow mt-4 text-left">
           <h3 className="font-semibold mb-2">{translation} - {book} {chapter}</h3>
           {verses.map((v, i) => (
-            <p key={i}><strong>{v.verse}.</strong> {v.text}</p>
+            <div key={i} className="mb-6">
+              <div className="flex justify-between items-start">
+                <p><strong>{v.verse}.</strong> {v.text}</p>
+                <button
+                  onClick={() => setNoteTarget({ book, chapter: parseInt(chapter), verse: v.verse })}
+                  className="text-blue-500 hover:text-blue-700 ml-2"
+                  title={`Add/edit note for verse ${v.verse}`}
+                >
+                  <PencilIcon className="h-4 w-4" />
+                </button>
+              </div>
+              {notes[v.verse] && (
+                <p className="text-sm text-gray-600 italic mt-1 ml-4">📝 {notes[v.verse]}</p>
+              )}
+            </div>
           ))}
+        </div>
+      )}
+
+      {noteTarget && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white rounded shadow-lg p-4 w-96">
+            <NotesEditor
+              reference={noteTarget}
+              onClose={() => setNoteTarget(null)}
+              onSave={handleFetch}
+            />
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={() => setNoteTarget(null)}
+                className="text-sm text-gray-600 hover:text-gray-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
