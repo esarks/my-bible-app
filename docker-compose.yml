@@ -12,9 +12,11 @@ services:
   frontend:
     build: ./frontend
     ports:
-      - "3000:3000"
+      - "3000:8080"  # ✅ fixed port mapping
     environment:
       - REACT_APP_API_URL=http://localhost:8080
+    depends_on:
+      - backend
 
   db:
     image: postgres:15
