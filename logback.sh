@@ -1,0 +1,1 @@
+docker logs -f my-bible-app-backend-1
