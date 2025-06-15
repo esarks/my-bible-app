@@ -53,7 +53,7 @@ export default function BibleSelector({ selected, onChange }) {
           Select a translation
         </option>
         {translationOptions.map(({ name, source }) => {
-          console.log(`📝 Rendering option: ${name} (${source})`);
+          //console.log(`📝 Rendering option: ${name} (${source})`);
           return (
             <option key={name} value={name}>
               {name} {source === 'api' ? '(Online)' : ''}

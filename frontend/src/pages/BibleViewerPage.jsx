@@ -53,10 +53,6 @@ export default function BibleViewer() {
   const userName = localStorage.getItem('userName');
   const userEmail = localStorage.getItem('userEmail');
 
-  console.info("BibleViewer: loginId", loginId);
-  console.info("BibleViewer: userName", userName);
-  console.info("BibleViewer: userEmail", userEmail);        
-
   useEffect(() => {
     if (book && chapterCounts[book]) {
       const count = chapterCounts[book];
@@ -88,10 +84,21 @@ export default function BibleViewer() {
     try {
       const data = await fetchVerses(translation, book, chapter);
       const allNotes = {};
+
+      // Load book note
+      const bookNote = await loadNote({ loginId, book });
+      if (bookNote?.content) allNotes['book'] = bookNote.content;
+
+      // Load chapter note
+      const chapterNote = await loadNote({ loginId, book, chapter: parseInt(chapter) });
+      if (chapterNote?.content) allNotes['chapter'] = chapterNote.content;
+
+      // Load verse notes
       for (const v of data.verses) {
         const n = await loadNote({ loginId, book, chapter: parseInt(chapter), verse: v.verse });
         if (n?.content) allNotes[v.verse] = n.content;
       }
+
       setVerses(data.verses || []);
       setNotes(allNotes);
     } catch (err) {
@@ -157,7 +164,31 @@ export default function BibleViewer() {
 
       {verses.length > 0 && (
         <div className="bg-white p-4 border rounded shadow mt-4 text-left">
-          <h3 className="font-semibold mb-2">{translation} - {book} {chapter}</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="font-semibold">{translation} - {book} {chapter}</h3>
+            <div className="space-x-2">
+              <button
+                onClick={() => setNoteTarget({ loginId, book })}
+                className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-300"
+              >
+                📘 Book Note
+              </button>
+              <button
+                onClick={() => setNoteTarget({ loginId, book, chapter: parseInt(chapter) })}
+                className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm hover:bg-gray-300"
+              >
+                📄 Chapter Note
+              </button>
+            </div>
+          </div>
+
+          {notes['book'] && (
+            <p className="text-sm text-purple-700 italic mb-2 ml-4">📘 Book Note: {notes['book']}</p>
+          )}
+          {notes['chapter'] && (
+            <p className="text-sm text-indigo-700 italic mb-4 ml-4">📄 Chapter Note: {notes['chapter']}</p>
+          )}
+
           {verses.map((v, i) => (
             <div key={i} className="mb-6">
               <div className="flex justify-between items-start">

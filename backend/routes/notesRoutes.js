@@ -17,24 +17,34 @@ router.get('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields: loginId and book are required.' });
   }
 
-  const parsedChapter = chapter ? parseInt(chapter, 10) : null;
-  const parsedVerse = verse ? parseInt(verse, 10) : null;
+  const where = { loginId, book };
 
-  if ((chapter && isNaN(parsedChapter)) || (verse && isNaN(parsedVerse))) {
-    console.warn('⚠️ Invalid chapter or verse input');
-    return res.status(400).json({ error: 'Chapter and verse must be valid numbers if provided.' });
+  // Handle chapter if present
+  if (chapter !== undefined && chapter !== '') {
+    const parsedChapter = parseInt(chapter, 10);
+    if (isNaN(parsedChapter)) {
+      return res.status(400).json({ error: 'Invalid chapter value' });
+    }
+    where.chapter = parsedChapter;
+  } else {
+    where.chapter = null;
   }
 
-  try {
-    const notes = await prisma.note.findMany({
-      where: {
-        loginId,
-        book,
-        chapter: parsedChapter,
-        verse: parsedVerse
-      },
-    });
+  // Handle verse if present
+  if (verse !== undefined && verse !== '') {
+    const parsedVerse = parseInt(verse, 10);
+    if (isNaN(parsedVerse)) {
+      return res.status(400).json({ error: 'Invalid verse value' });
+    }
+    where.verse = parsedVerse;
+  } else {
+    where.verse = null;
+  }
 
+  console.log('🧩 Final where clause:', where);
+
+  try {
+    const notes = await prisma.note.findMany({ where });
     console.log(`✅ Found ${notes.length} note(s)`);
     res.json(notes.length > 0 ? notes[0] : {});
   } catch (err) {
@@ -55,18 +65,18 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'Missing required fields: loginId, book, content are required.' });
   }
 
-  const parsedChapter = chapter ?? null;
-  const parsedVerse = verse ?? null;
+  const parsedChapter = chapter !== undefined ? chapter : null;
+  const parsedVerse = verse !== undefined ? verse : null;
+
+  const where = {
+    loginId,
+    book,
+    chapter: parsedChapter,
+    verse: parsedVerse,
+  };
 
   try {
-    const existingNote = await prisma.note.findFirst({
-      where: {
-        loginId,
-        book,
-        chapter: parsedChapter,
-        verse: parsedVerse
-      },
-    });
+    const existingNote = await prisma.note.findFirst({ where });
 
     if (existingNote) {
       console.log('✏️ Updating existing note');

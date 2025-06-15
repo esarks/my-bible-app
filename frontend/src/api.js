@@ -28,16 +28,19 @@ export const saveNote = async (reference, content) => {
 
 /**
  * Loads an existing note from the backend.
- * @param {object} reference - { loginId, book, chapter, verse }
+ * @param {object} reference - { loginId, book, chapter?, verse? }
  */
 export const loadNote = async (reference) => {
-  const params = new URLSearchParams({
-    loginId: reference.loginId, // ✅ fixed
-    book: reference.book,
-    chapter: reference.chapter ?? '',
-    verse: reference.verse ?? '',
-  });
-  const response = await fetch(`${baseURL}/api/notes?${params.toString()}`);
+  const params = new URLSearchParams();
+  params.set('loginId', reference.loginId);
+  params.set('book', reference.book);
+  if (reference.chapter != null) params.set('chapter', reference.chapter);
+  if (reference.verse != null) params.set('verse', reference.verse);
+
+  const url = `${baseURL}/api/notes?${params.toString()}`;
+  console.info('loadNote →', { url });
+  
+  const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to load note');
   return response.json();
 };
