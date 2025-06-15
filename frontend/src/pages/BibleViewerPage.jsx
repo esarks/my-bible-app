@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import BibleSelector from './BibleSelector';
+import BibleSelector from '../components/BibleSelector';
 import { fetchVerses, loadNote } from '../api';
-import NotesEditor from './NotesEditor';
+import NotesEditor from '../components/NotesEditor';
 import { PencilIcon } from '@heroicons/react/24/solid';
 
 const books = [
