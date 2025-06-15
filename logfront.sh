@@ -1,1 +1,2 @@
-docker logs =f my-bible-frontend-1
+docker logs -f my-bible-app-frontend-1  # ✅ Correct
+
