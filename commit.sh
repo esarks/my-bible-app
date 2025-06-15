@@ -10,13 +10,18 @@ COMMIT_MESSAGE=${1:-$DEFAULT_MESSAGE}
 echo "Staging all changes..."
 git add .
 
-echo "Committing changes with message: \"$COMMIT_MESSAGE\""
-git commit -m "$COMMIT_MESSAGE"
+# Check if there is anything to commit
+if git diff --cached --quiet; then
+  echo "🟡 No changes to commit."
+else
+  echo "Committing changes with message: \"$COMMIT_MESSAGE\""
+  git commit -m "$COMMIT_MESSAGE"
 
-# Detect current branch
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  # Detect current branch
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-echo "Pushing to branch: $BRANCH"
-git push origin "$BRANCH"
+  echo "Pushing to branch: $BRANCH"
+  git push origin "$BRANCH"
 
-echo "✅ All changes committed and pushed!"
+  echo "✅ All changes committed and pushed!"
+fi
