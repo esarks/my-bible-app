@@ -1,11 +1,10 @@
-
-.git
-node_modules
-**/node_modules/
-*.log
+# Ignore node_modules and other non-source files
+node_modules/
 *.bak
+*.log
 *.tmp
-.env
-.vscode
-*.ps1
-deploygcp.sh
+*.swp
+*.DS_Store
+*.env
+.vscode/
+data/prisma/dev.db
