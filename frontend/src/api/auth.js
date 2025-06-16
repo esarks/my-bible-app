@@ -1,5 +1,7 @@
-const API_BASE = 'http://localhost:8081/api/auth';  // Backend auth endpoints
-const PROFILE_API_BASE = 'http://localhost:8081/api/user-profile';  // Backend profile endpoints
+const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';  // fallback for dev
+
+const API_BASE = `${BASE_URL}/api/auth`;
+const PROFILE_API_BASE = `${BASE_URL}/api/user-profile`;
 
 // ✅ Track the verified phone number
 let verifiedPhoneNumber = null;
