@@ -1,29 +1,25 @@
-version: "3.8"
+version: '3.9'
+
 services:
   backend:
     build: ./backend
+    env_file:
+      - ./backend/.env  # contains DATABASE_URL pointing to Supabase
     ports:
       - "8080:8080"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/mydb
-    depends_on:
-      - db
+    networks:
+      - bible-net
 
   frontend:
     build: ./frontend
     ports:
-      - "3000:8080"  # ✅ fixed port mapping
+      - "3000:8080"
     environment:
-      - REACT_APP_API_URL=http://localhost:8080
+      - REACT_APP_API_URL=http://backend:8080
     depends_on:
       - backend
+    networks:
+      - bible-net
 
-  db:
-    image: postgres:15
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: mydb
-    ports:
-      - "5432:5432"
+networks:
+  bible-net:
