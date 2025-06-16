@@ -11,11 +11,6 @@ SUPABASE_DB_URL="postgresql://postgres:mybibleapp123@aws-0-us-east-2.pooler.supa
 echo "⚙️ Setting project..."
 gcloud config set project "$PROJECT_ID"
 
-echo "🧹 Normalizing line endings (LF only)..."
-find ./backend ./frontend -type f \
-  \( -name "*.js" -o -name "*.json" -o -name "*.ts" -o -name "*.yml" -o -name "*.sh" -o -name "Dockerfile*" \) \
-  -exec dos2unix {} \; || echo "No files to convert"
-
 echo "📦 Building backend..."
 gcloud builds submit ./backend --tag "gcr.io/$PROJECT_ID/$BACKEND_SERVICE"
 
@@ -38,3 +33,4 @@ gcloud run deploy "$FRONTEND_SERVICE" \
   --allow-unauthenticated
 
 echo "✅ Deployment complete!"
+
