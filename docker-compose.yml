@@ -12,6 +12,8 @@ services:
 
   frontend:
     build: ./frontend
+    env_file:
+      - ./frontend/.env  # contains DATABASE_URL pointing to Supabase
     ports:
       - "3000:8080"
     environment:
