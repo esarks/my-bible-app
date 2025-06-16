@@ -2,10 +2,25 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
 import BibleViewer from './pages/BibleViewerPage';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from './supabaseClient';
 
 function App() {
-  const [userId, setUserId] = useState('test-user'); // Replace with actual login logic later
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser({
+          name: session.user.user_metadata?.name || 'Anonymous',
+          email: session.user.email,
+          loginId: session.user.id,
+        });
+      }
+    };
+    getSession();
+  }, []);
 
   return (
     <Router>
@@ -14,9 +29,9 @@ function App() {
           <Link to="/">Home</Link> | <Link to="/login">Login</Link> | <Link to="/profile">Profile</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<BibleViewer userId={userId} />} />
+          <Route path="/" element={<BibleViewer user={user} />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/profile" element={<UserProfilePage user={user} />} />
         </Routes>
       </div>
     </Router>
