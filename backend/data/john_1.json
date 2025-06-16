@@ -1,8 +1,1 @@
-{
-  "book": "John",
-  "chapter": 1,
-  "verses": [
-    { "verse": 1, "text": "In the beginning was the Word, and the Word was with God, and the Word was God." },
-    { "verse": 2, "text": "He was with God in the beginning." }
-  ]
-}
+{  "book": "John",  "chapter": 1,  "verses": [    { "verse": 1, "text": "In the beginning was the Word, and the Word was with God, and the Word was God." },    { "verse": 2, "text": "He was with God in the beginning." }  ]}
