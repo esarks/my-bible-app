@@ -18,15 +18,16 @@ export default function ViewerShell({ user }) {
         <select
           value={selectedKey}
           onChange={(e) => setSelectedKey(e.target.value)}
-          className="border px-2 py-1 rounded"
+          className="border border-gray-300 rounded px-3 py-2 shadow-sm focus:outline-none focus:ring focus:border-blue-300"
         >
           {viewerOptions.map((v) => (
-            <option key={v.key} value={v.key}>{v.label}</option>
+            <option key={v.key} value={v.key}>
+              {v.label}
+            </option>
           ))}
         </select>
       </div>
 
-      {/* Render selected viewer page */}
       {selectedViewer?.component && <selectedViewer.component user={user} />}
     </div>
   );

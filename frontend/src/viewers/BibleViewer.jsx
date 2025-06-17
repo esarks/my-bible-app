@@ -74,8 +74,8 @@ export default function BibleViewer() {
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4 text-center">📖 Bible Viewer</h1>
+    <div className="p-4 max-w-5xl mx-auto">
+      <h1 className="text-xl font-bold mb-4 text-left">📖 Bible Viewer</h1>
 
       <div className="bg-gray-100 p-3 mb-4 rounded shadow text-sm text-gray-800">
         <p><strong>Logged in as:</strong> {userName || 'Unknown User'}</p>
@@ -99,7 +99,7 @@ export default function BibleViewer() {
       {error && <p className="text-red-600 mt-4">❌ {error}</p>}
 
       {verses.length > 0 && (
-        <div className="bg-white p-4 border rounded shadow mt-4 text-left">
+        <div className="bg-white p-4 border rounded shadow mt-4">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">{translation} - {book} {chapter}</h3>
             <div className="space-x-2">
@@ -125,25 +125,37 @@ export default function BibleViewer() {
             <p className="text-sm text-indigo-700 italic mb-4 ml-4">📄 Chapter Note: {notes['chapter']}</p>
           )}
 
-          {verses.map((v, i) => (
-            <div key={i} className="mb-6">
-              <div className="flex justify-between items-start">
-                <p><strong>{v.verse}.</strong> {v.text}</p>
-                <button
-                  onClick={() =>
-                    setNoteTarget({ loginId, book, chapter: parseInt(chapter), verse: v.verse })
-                  }
-                  className="text-blue-500 hover:text-blue-700 ml-2"
-                  title={`Add/edit note for verse ${v.verse}`}
-                >
-                  <PencilIcon className="h-4 w-4" />
-                </button>
-              </div>
-              {notes[v.verse] && (
-                <p className="text-sm text-gray-600 italic mt-1 ml-4">📝 {notes[v.verse]}</p>
-              )}
-            </div>
-          ))}
+          <div className="overflow-x-auto">
+            <table className="table-auto w-full border-t border-gray-300 text-left">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="p-2 font-semibold w-3/4">📖 Verse</th>
+                  <th className="p-2 font-semibold w-1/4">📝 Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {verses.map((v, i) => (
+                  <tr key={i} className="border-t align-top">
+                    <td className="p-2 align-top break-words">
+                      <strong>Verse {v.verse}:</strong> {v.text}
+                    </td>
+                    <td className="p-2 text-sm text-gray-700 italic align-top break-words">
+                      {notes[v.verse] || 'No note'}
+                      <button
+                        onClick={() =>
+                          setNoteTarget({ loginId, book, chapter: parseInt(chapter), verse: v.verse })
+                        }
+                        className="text-blue-500 hover:text-blue-700 ml-2"
+                        title={`Add/edit note for verse ${v.verse}`}
+                      >
+                        <PencilIcon className="h-4 w-4 inline-block" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
