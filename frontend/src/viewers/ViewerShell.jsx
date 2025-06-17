@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
-import BibleViewer from '../pages/BibleViewerPage';
-import SimpleVerseListViewer from '../viewers/SimpleVerseListViewer';
-import { fetchVersesFromBackend } from '../utils/fetchVerses';
-import NoteEditor from '../components/NoteEditor'; // ✅ Add this
-import { loadNote } from '../api'; // ✅ Reuse your existing note loader
+import BibleViewerPage from '../pages/BibleViewerPage';
+import SimpleVerseListViewerPage from '../pages/SimpleVerseListViewerPage';
+import NoteEditor from '../components/NoteEditor';
+import { loadNote } from '../api';
+
+// Inline verse fetcher
+async function fetchVersesFromBackend(translation, book, chapter) {
+  const res = await fetch(`/api/bible?translation=${translation}&book=${book}&chapter=${chapter}`);
+  const data = await res.json();
+  return data.verses || [];
+}
 
 const viewerOptions = [
-  { key: 'bible', label: '📖 Bible Viewer', component: BibleViewer },
-  { key: 'simple', label: '📜 Simple Verse List Viewer', component: SimpleVerseListViewer },
+  { key: 'bible', label: '📖 Bible Viewer', component: BibleViewerPage },
+  { key: 'simple', label: '📜 Simple Verse List Viewer', component: SimpleVerseListViewerPage },
 ];
 
 export default function ViewerShell({ user }) {
@@ -62,8 +68,8 @@ export default function ViewerShell({ user }) {
     setNotes(allNotes);
   };
 
-  const handleNoteClick = (verseNum) => {
-    setSelectedVerse({ book, chapter, verse: verseNum });
+  const handleNoteClick = (verseInfo) => {
+    setSelectedVerse(verseInfo);
     setShowEditor(true);
   };
 
@@ -75,7 +81,13 @@ export default function ViewerShell({ user }) {
   const handleEditorSave = () => {
     setShowEditor(false);
     setSelectedVerse(null);
-    handleViewClick(); // Reload notes
+    handleViewClick();
+  };
+
+  const handleChange = (field, value) => {
+    if (field === 'translation') setTranslation(value);
+    if (field === 'book') setBook(value);
+    if (field === 'chapter') setChapter(value);
   };
 
   return (
@@ -93,40 +105,24 @@ export default function ViewerShell({ user }) {
         </select>
       </div>
 
-      <div className="space-x-2">
-        <select value={translation} onChange={(e) => setTranslation(e.target.value)}>
-          <option value="ASV">ASV</option>
-          <option value="KJV">KJV</option>
-        </select>
-
-        <select value={book} onChange={(e) => setBook(e.target.value)}>
-          <option value="">Select a book</option>
-          {books.map((b) => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
-
-        <select value={chapter} onChange={(e) => setChapter(e.target.value)}>
-          <option value="">Select a chapter</option>
-          {chapters.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-
-        <button onClick={handleViewClick} className="px-2 py-1 bg-blue-600 text-white rounded">
-          View Chapter
-        </button>
-      </div>
-
       {selectedViewer?.component && (
         <selectedViewer.component
           user={user}
+          userId={user?.loginId}
           translation={translation}
           book={book}
           chapter={chapter}
+          books={books}
+          chapters={chapters}
           verses={verses}
           notes={notes}
-          onNoteClick={handleNoteClick} // ✅ Hook up editor
+          selectedVerse={selectedVerse}
+          showEditor={showEditor}
+          onChange={handleChange}
+          onViewClick={handleViewClick}
+          onNoteClick={handleNoteClick}
+          onEditorClose={handleEditorClose}
+          onEditorSave={handleEditorSave}
         />
       )}
 

@@ -1,41 +1,97 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
+import SimpleVerseListViewer from '../viewers/SimpleVerseListViewer';
 
-const SimpleVerseListViewer = ({ verses = [], book, chapter, notes = {}, onNoteClick }) => {
+const SimpleVerseListViewerPage = () => {
+  const [userId, setUserId] = useState(null);
+  const [user, setUser] = useState({});
+  const [translation, setTranslation] = useState('KJV');
+  const [book, setBook] = useState('John');
+  const [chapter, setChapter] = useState(3);
+  const [verses, setVerses] = useState([]);
+  const [notes, setNotes] = useState({});
+  const [selectedVerse, setSelectedVerse] = useState(null);
+  const [showEditor, setShowEditor] = useState(false);
+
+  const books = [...]; // (same book array from BibleViewer)
+  const chapters = Array.from({ length: 150 }, (_, i) => i + 1);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        setUserId(session.user.id);
+        setUser({
+          name: session.user.user_metadata?.name || 'Anonymous',
+          email: session.user.email,
+          loginId: session.user.id,
+        });
+      }
+    };
+    getSession();
+  }, []);
+
+  const fetchScriptureAndNotes = async () => {
+    const res = await fetch(`/scriptures/${book}/${chapter}.json`);
+    const data = await res.json();
+    setVerses(data.verses || []);
+    const newNotes = {};
+    for (const verse of data.verses || []) {
+      const { data } = await supabase
+        .from('notes')
+        .select('content')
+        .eq('user_id', userId)
+        .eq('book', book)
+        .eq('chapter', chapter)
+        .eq('verse', verse.verse)
+        .single();
+      if (data?.content) newNotes[verse.verse] = data.content;
+    }
+    setNotes(newNotes);
+  };
+
+  useEffect(() => {
+    if (userId) fetchScriptureAndNotes();
+  }, [book, chapter, userId]);
+
+  const handleChange = (type, value) => {
+    if (type === 'translation') setTranslation(value);
+    if (type === 'book') setBook(value);
+    if (type === 'chapter') setChapter(Number(value));
+  };
+
   return (
-    <div className="text-left space-y-4 p-4 bg-gray-50 border rounded shadow">
-      <h1 className="text-2xl font-bold">📜 Simple Verse List Viewer</h1>
-
-      {!verses.length ? (
-        <p className="text-gray-500 italic">No verses to display.</p>
-      ) : (
-        <>
-          <h2 className="text-xl font-semibold">{book} {chapter}</h2>
-          <div className="space-y-3">
-            {verses.map((verse) => (
-              <div key={verse.verse} className="border-b pb-2">
-                <p>
-                  <span className="font-bold">{verse.verse}.</span> {verse.text}
-                </p>
-
-                {notes[verse.verse] && (
-                  <p className="text-sm italic text-gray-600 ml-4">
-                    📝 {notes[verse.verse]}
-                  </p>
-                )}
-
-                <button
-                  onClick={() => onNoteClick(verse.verse)}
-                  className="ml-4 text-blue-600 text-sm hover:underline"
-                >
-                  ✏️ Edit Note
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
+    <SimpleVerseListViewer
+      user={user}
+      userId={userId}
+      translation={translation}
+      book={book}
+      chapter={chapter}
+      books={books}
+      chapters={chapters}
+      verses={verses}
+      notes={notes}
+      selectedVerse={selectedVerse}
+      showEditor={showEditor}
+      onChange={handleChange}
+      onViewClick={fetchScriptureAndNotes}
+      onNoteClick={(verseInfo) => {
+        setSelectedVerse(verseInfo);
+        setShowEditor(true);
+      }}
+      onEditorClose={() => {
+        setShowEditor(false);
+        setSelectedVerse(null);
+      }}
+      onEditorSave={() => {
+        setShowEditor(false);
+        setSelectedVerse(null);
+        fetchScriptureAndNotes();
+      }}
+    />
   );
 };
 
-export default SimpleVerseListViewer;
+export default SimpleVerseListViewerPage;
