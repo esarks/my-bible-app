@@ -5,7 +5,7 @@ import { fetchVerses, loadNote } from '../api';
 import { PencilIcon } from '@heroicons/react/24/solid';
 import { books, chapterCounts } from '../constants/Constants';
 
-export default function SimpleVerseListViewer() {
+export default function BibleViewer() {
   const [translation, setTranslation] = useState('ASV');
   const [book, setBook] = useState('');
   const [chapters, setChapters] = useState([]);
