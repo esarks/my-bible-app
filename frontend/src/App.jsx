@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
-import BibleViewer from './pages/BibleViewerPage';
+import Home from './pages/Home';  // <-- New
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -29,7 +29,7 @@ function App() {
           <Link to="/">Home</Link> | <Link to="/login">Login</Link> | <Link to="/profile">Profile</Link>
         </nav>
         <Routes>
-          <Route path="/" element={<BibleViewer user={user} />} />
+          <Route path="/" element={<Home user={user} />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/profile" element={<UserProfilePage user={user} />} />
         </Routes>
