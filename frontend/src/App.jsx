@@ -1,11 +1,13 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import UserProfilePage from './pages/UserProfilePage';
-import Home from './pages/Home';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
 
-function App() {
+import MainLayout from './layouts/MainLayout';
+import Home from './pages/Home';
+import LoginPage from './pages/LoginPage';
+import UserProfilePage from './pages/UserProfilePage';
+
+export default function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -24,27 +26,13 @@ function App() {
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800">
-        <header className="bg-white shadow">
-          <nav className="container mx-auto px-4 py-4 flex justify-center space-x-4 text-blue-600 font-medium">
-            <Link to="/" className="hover:underline">Home</Link>
-            <span>|</span>
-            <Link to="/login" className="hover:underline">Login</Link>
-            <span>|</span>
-            <Link to="/profile" className="hover:underline">Profile</Link>
-          </nav>
-        </header>
-
-        <main className="flex-grow container mx-auto px-4 py-6">
-          <Routes>
-            <Route path="/" element={<Home user={user} />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/profile" element={<UserProfilePage user={user} />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home user={user} />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/profile" element={<UserProfilePage user={user} />} />
+        </Route>
+      </Routes>
     </Router>
   );
 }
-
-export default App;
