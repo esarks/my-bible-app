@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import ViewerLayout from '../components/ViewerLayout';
-import ViewerControls from '../components/ViewerControls';
 import NoteEditor from '../components/NoteEditor';
 import ScriptureText from '../components/ScriptureText';
 
@@ -32,7 +31,7 @@ const BibleViewer = () => {
     'Hebrews', 'James', '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
   ];
 
-  const chapters = Array.from({ length: 150 }, (_, i) => i + 1); // up to 150 chapters for Psalms
+  const chapters = Array.from({ length: 150 }, (_, i) => i + 1); // max 150 chapters for Psalms
 
   useEffect(() => {
     const getSession = async () => {
@@ -70,8 +69,8 @@ const BibleViewer = () => {
   };
 
   return (
-    <ViewerLayout>
-      <ViewerControls
+    <>
+      <ViewerLayout
         user={user}
         translation={translation}
         book={book}
@@ -104,7 +103,7 @@ const BibleViewer = () => {
           onSave={handleEditorSave}
         />
       )}
-    </ViewerLayout>
+    </>
   );
 };
 

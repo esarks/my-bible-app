@@ -1,17 +1,31 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; // ✅ Add this
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { PlasmicLoginPage } from '../plasmic/my_bible_app_ui/PlasmicLoginPage';
 import PhoneAuthForm from '../components/PhoneAuthForm';
 
 const LoginPage = () => {
+  const [showForm, setShowForm] = useState(false);
+
   return (
-    <div>
-      <h1>Login</h1>
-      <PhoneAuthForm />
-      <div style={{ marginTop: '20px' }}>
-        {/* ✅ Add the link to the User Profile page */}
-        <Link to="/profile">Go to User Profile</Link>
-      </div>
-    </div>
+    <PlasmicLoginPage
+      // 🧩 Use Plasmic slot for dynamic content
+      startButtonSlot={
+        !showForm ? (
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+          >
+            Start Login
+          </button>
+        ) : null
+      }
+      authFormSlot={showForm ? <PhoneAuthForm /> : null}
+      profileLinkSlot={
+        <div style={{ marginTop: '20px' }}>
+          <Link to="/profile">Go to User Profile</Link>
+        </div>
+      }
+    />
   );
 };
 

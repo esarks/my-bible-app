@@ -1,0 +1,74 @@
+.MenuItem__root__qqsJr.__wab_instance {
+  position: relative;
+  cursor: pointer;
+  color: var(--token-Tf-4kMw6Juox);
+  font-family: var(--token-TRASPbHxa2WW);
+  font-size: var(--token-nmMmwmLKCJSv);
+  line-height: var(--token-dgzuTUUD1mTO);
+  outline-style: none;
+  border-radius: var(--token-KUTLCZWvE9WI);
+}
+.MenuItem__root__qqsJr[data-hovered].__wab_instance {
+  background: var(--token-4ffoqRJNkDKV);
+}
+.MenuItem__root__qqsJr[data-selected].__wab_instance {
+  background: var(--token-9cxd2DnwYD0y);
+}
+.MenuItem__root__qqsJr[data-disabled].__wab_instance {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.MenuItem__root__qqsJr[data-focus-visible].__wab_instance {
+  outline-style: solid;
+  outline-width: var(--token-mEZgaqjRWBkr);
+  outline-color: var(--token-hlcyQeU5AGn0);
+  outline-offset: 1px;
+}
+.MenuItem__freeBox__f8Tsa {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  padding: var(--token-1yAWlEHsqo04) var(--token-rbYqH4jbuV2k);
+}
+.MenuItem__freeBox__f8Tsa > .__wab_flex-container {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  min-width: 0;
+  margin-left: calc(0px - 2px);
+  width: calc(100% + 2px);
+  margin-top: calc(0px - var(--token-mEZgaqjRWBkr));
+  height: calc(100% + var(--token-mEZgaqjRWBkr));
+}
+.MenuItem__freeBox__f8Tsa > .__wab_flex-container > *,
+.MenuItem__freeBox__f8Tsa > .__wab_flex-container > .__wab_slot > *,
+.MenuItem__freeBox__f8Tsa > .__wab_flex-container > picture > img,
+.MenuItem__freeBox__f8Tsa
+  > .__wab_flex-container
+  > .__wab_slot
+  > picture
+  > img {
+  margin-left: 2px;
+  margin-top: var(--token-mEZgaqjRWBkr);
+}
+.MenuItem__freeBox__rfgFb {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+}
+.MenuItem__text__yanod {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  color: var(--token-MEZO7K8LWxnz);
+  min-width: 0;
+}

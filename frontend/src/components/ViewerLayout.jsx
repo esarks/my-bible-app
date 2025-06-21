@@ -5,9 +5,9 @@ const ViewerLayout = ({
   translation,
   book,
   chapter,
-  translations,
-  books,
-  chapters,
+  translations = [],
+  books = [],
+  chapters = [],
   onTranslationChange,
   onBookChange,
   onChapterChange,
@@ -30,7 +30,7 @@ const ViewerLayout = ({
           onChange={onTranslationChange}
           className="w-full p-2 border rounded shadow-sm text-sm"
         >
-          {translations.map((t) => (
+          {Array.isArray(translations) && translations.map((t) => (
             <option key={t.key} value={t.key}>{t.label}</option>
           ))}
         </select>
@@ -43,7 +43,7 @@ const ViewerLayout = ({
           onChange={onBookChange}
           className="w-full p-2 border rounded shadow-sm text-sm"
         >
-          {books.map((b) => (
+          {Array.isArray(books) && books.map((b) => (
             <option key={b} value={b}>{b}</option>
           ))}
         </select>
@@ -56,7 +56,7 @@ const ViewerLayout = ({
           onChange={onChapterChange}
           className="w-full p-2 border rounded shadow-sm text-sm"
         >
-          {chapters.map((c) => (
+          {Array.isArray(chapters) && chapters.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>

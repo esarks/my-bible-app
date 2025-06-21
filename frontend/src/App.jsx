@@ -6,6 +6,10 @@ import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import LoginPage from './pages/LoginPage';
 import UserProfilePage from './pages/UserProfilePage';
+import PlasmicTestPage from './pages/PlasmicTestPage'; // 👈 new route for Plasmic rendering
+import { PlasmicRootProvider } from '@plasmicapp/loader-react';
+import { PLASMIC } from './plasmic-init';
+import BibleShellPage from './pages/BibleShellPage';
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -25,14 +29,21 @@ export default function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<Home user={user} />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/profile" element={<UserProfilePage user={user} />} />
-        </Route>
-      </Routes>
-    </Router>
+    <PlasmicRootProvider loader={PLASMIC}>
+      <Router>
+        <Routes>
+          {/* Plasmic layout rendered at this route */}
+          <Route path="/plasmic" element={<PlasmicTestPage />} />
+
+          {/* Your main app routes */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home user={user} />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/profile" element={<UserProfilePage user={user} />} />
+            <Route path="/viewer" element={<BibleShellPage />} />
+          </Route>
+        </Routes>
+      </Router>
+    </PlasmicRootProvider>
   );
 }

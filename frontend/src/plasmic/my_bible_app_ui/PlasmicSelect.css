@@ -1,0 +1,82 @@
+.Select__ariaSelect___6HjBi.__wab_instance {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  row-gap: var(--token-Sf7MisVjeNs9);
+}
+.Select__ariaSelect___6HjBi[data-disabled].__wab_instance {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.Select__ariaButton___4T4GV.__wab_instance {
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 100%;
+  box-shadow: inset 0px 0px 0px 1px var(--token-fFBKhKdXrhAe);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  outline-style: none;
+  background: var(--token-TDBB_DJzxsaP);
+  min-width: 0;
+  border-radius: var(--token-KUTLCZWvE9WI);
+  padding: 0px;
+  border-style: none;
+}
+.Select__ariaSelect___6HjBi[data-focus-visible]
+  .Select__ariaButton___4T4GV.__wab_instance {
+  outline-style: solid;
+  outline-width: var(--token-mEZgaqjRWBkr);
+  outline-offset: 1px;
+  outline-color: var(--token-hlcyQeU5AGn0);
+}
+.Select__ariaSelectedValue___3Edlv.__wab_instance {
+  font-size: var(--token-nmMmwmLKCJSv);
+  line-height: var(--token-dgzuTUUD1mTO);
+  padding-top: var(--token-KUTLCZWvE9WI);
+  padding-bottom: var(--token-KUTLCZWvE9WI);
+  padding-left: var(--token-rbYqH4jbuV2k);
+}
+.Select__text__tmmIf {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  color: var(--token-MEZO7K8LWxnz);
+  min-width: 0;
+}
+.Select__freeBox___8Zr0U {
+  display: flex;
+  position: relative;
+  width: var(--token-hIUyZYSVCody);
+  height: var(--token-hIUyZYSVCody);
+  justify-content: center;
+  align-items: center;
+}
+.Select__svg__kpU54 {
+  width: var(--token-JqbBiFcESBB2);
+  height: var(--token-JqbBiFcESBB2);
+  flex-shrink: 0;
+}
+.Select__description__mIsu8.__wab_instance.__wab_instance {
+  position: relative;
+}
+.Select__menuPopover__rEjnU.__wab_instance.__wab_instance {
+  position: relative;
+  top: auto;
+  left: auto;
+}
+.Select__menuSection__xJrO7.__wab_instance.__wab_instance {
+  max-width: 100%;
+}
+.Select__text__kC8Kl {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+}

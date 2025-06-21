@@ -1,11 +1,31 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8080' // 👈 Proxy /api to your backend
+  resolve: {
+    alias: {
+      process: 'process/browser',
+      buffer: 'buffer'
+    }
+  },
+  define: {
+    'process.env': {} // <= THIS line is critical for 'auth.js'
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      define: {
+        global: 'globalThis'
+      },
+      plugins: [
+        NodeGlobalsPolyfillPlugin({
+          buffer: true,
+          process: true
+        }),
+        NodeModulesPolyfillPlugin()
+      ]
     }
   }
 });
